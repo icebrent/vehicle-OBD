@@ -317,7 +317,6 @@ test("source selection stays bounded and chart/hover order follows Signals after
     "Battery temperature · °C",
   ]);
   const chart = page.getByRole("img", { name: "Physical signal time series" });
-  await page.getByRole("button", { name: "Pause vehicle display" }).click();
   await chart.scrollIntoViewIfNeeded();
   const rect = await chart.boundingBox();
   if (!rect) throw new Error("Missing chart");
@@ -332,6 +331,19 @@ test("source selection stays bounded and chart/hover order follows Signals after
   await expect(rows.nth(1)).toContainText("Pack voltage");
   await expect(rows.nth(1).locator("strong")).not.toContainText("—");
   await expect(rows.nth(2).locator("strong")).not.toContainText("—");
+  // Keep the pointer stationary while polling replaces the history objects.
+  // Also change values to prove this is a live update, not a frozen chart.
+  for (const value of [413, 419, 425]) {
+    for (const reading of readings)
+      if (reading.signal_id === "voltage") reading.value = value;
+    await expect(rows.nth(1).locator("strong")).toHaveText(
+      `${value.toFixed(1)} V`,
+    );
+    await expect(page.locator(".vt-trend-tooltip")).toBeVisible();
+  }
+  await page.screenshot({ path: "test-results/vehicle-tooltip-live.png" });
+  await page.mouse.move(rect.x + 5, rect.y - 15);
+  await expect(page.locator(".vt-trend-tooltip")).not.toBeVisible();
   await page.setViewportSize({ width: 390, height: 844 });
   expect(
     await page.evaluate(

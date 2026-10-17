@@ -123,13 +123,34 @@ function SystemStatus() {
     </footer>
   );
 }
-function CaptureError() {
+function CaptureError({
+  error,
+  onDismiss,
+}: {
+  error: string;
+  onDismiss: () => void;
+}) {
   const { status } = useMonitor();
-  return status?.last_error ? (
-    <div className="error-banner" role="alert">
-      {status.last_error}
+  const backendError = status?.last_error ?? "";
+  const [dismissed, setDismissed] = useState("");
+  useEffect(() => setDismissed(""), [backendError]);
+  const errors = [
+    ...new Set([error, backendError !== dismissed ? backendError : ""]),
+  ].filter(Boolean);
+  return errors.map((message) => (
+    <div className="error-banner" role="alert" key={message}>
+      {message}
+      <button
+        aria-label="Dismiss error"
+        onClick={() => {
+          if (message === error) onDismiss();
+          if (message === backendError) setDismissed(message);
+        }}
+      >
+        <X size={14} />
+      </button>
     </div>
-  ) : null;
+  ));
 }
 function CaptureWorkspace({ onVehicle }: { onVehicle: () => void }) {
   const [selected, setSelected] = useState("");
@@ -141,15 +162,7 @@ function CaptureWorkspace({ onVehicle }: { onVehicle: () => void }) {
       <Header onVehicle={onVehicle} />
       <main>
         <Controls onError={onError} />
-        {error && (
-          <div className="error-banner" role="alert">
-            {error}
-            <button aria-label="Dismiss error" onClick={() => setError("")}>
-              <X size={14} />
-            </button>
-          </div>
-        )}
-        <CaptureError />
+        <CaptureError error={error} onDismiss={() => setError("")} />
         <Metrics />
         <Monitor selected={selected} onSelect={setSelected} />
         <RawCharts selected={selected} />

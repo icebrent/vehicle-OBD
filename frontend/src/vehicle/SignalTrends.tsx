@@ -33,6 +33,7 @@ export function SignalTrends({
   );
   const container = useRef<HTMLDivElement>(null);
   const chart = useRef<echarts.EChartsType | null>(null);
+  const layout = useRef("");
   const { resolved } = useTheme();
   useEffect(() => {
     if (!container.current) return;
@@ -49,6 +50,7 @@ export function SignalTrends({
     const start = end - windowSeconds * 1000;
     const text = resolved === "light" ? "#516174" : "#84929f";
     const split = resolved === "light" ? "#e0e6ec" : "#25313b";
+    const nextLayout = orderedSelected.join(",");
     chart.current?.setOption(
       {
         animation: false,
@@ -113,8 +115,11 @@ export function SignalTrends({
             .map((s) => [s.timestamp, s.values[id]]),
         })),
       },
-      { notMerge: true },
+      // Preserve ECharts' active axis pointer and tooltip during data polling.
+      // Rebuild only when the selected subplots change.
+      { notMerge: layout.current !== nextLayout },
     );
+    layout.current = nextLayout;
   }, [history, orderedSelected, windowSeconds, resolved]);
   return (
     <div className="vt-chart-wrap">
