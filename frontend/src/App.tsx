@@ -1,10 +1,11 @@
 import { lazy, Suspense, useCallback, useEffect, useState } from "react";
-import { Activity, ShieldCheck, Radio, X } from "lucide-react";
+import { X } from "lucide-react";
+import { WorkspaceStatusStrip } from "./components/WorkspaceStatusStrip";
 import { Controls } from "./components/Controls";
 import { Monitor } from "./components/Monitor";
 import { RawCharts } from "./charts/RawCharts";
 import { Recordings } from "./components/Recordings";
-import { ThemeToggle } from "./components/ThemeToggle";
+import { WorkspaceHeader } from "./components/WorkspaceHeader";
 import { DecodedSignals } from "./components/DecodedSignals";
 import { monitor, useMonitor } from "./state/store";
 const VehicleWorkspace = lazy(() => import("./vehicle/VehicleWorkspace"));
@@ -12,83 +13,43 @@ function Header({ onVehicle }: { onVehicle: () => void }) {
   const { status, connected } = useMonitor();
   return (
     <>
-      <header>
-        <div className="brand">
-          <span className="brand-icon">
-            <Activity size={23} />
-          </span>
-          <div>
-            <h1>
-              CAN Observatory<span> / </span>
-              <em>Workspace</em>
-            </h1>
-            <p>CAN ANALYSIS · EXPLICIT READ-ONLY DIAGNOSTICS</p>
-          </div>
-        </div>
-        <div className="header-right">
-          <span className="safe">
-            <ShieldCheck size={14} />
-            Passive capture · Optional PID reads
-          </span>
-          <span className={`connection ${connected ? "online" : ""}`}>
-            <i />
-            {connected ? "WebSocket online" : "WebSocket reconnecting"}
-          </span>
-          <span className="version">v0.1</span>
-          <button onClick={onVehicle}>Vehicle demo</button>
-          <ThemeToggle />
-        </div>
-      </header>
-      <div className="status-strip">
-        <span className="status-main">
-          <Radio size={13} />
-          {status?.state === "querying"
+      <WorkspaceHeader
+        view="capture"
+        connected={connected}
+        onNavigate={(view) => {
+          if (view === "vehicle") onVehicle();
+        }}
+      />
+      <WorkspaceStatusStrip
+        state={
+          status?.state === "querying"
             ? "Reading PIDs"
             : status?.state === "listening"
-              ? "Listening"
+              ? status.config.kind === "replay"
+                ? "Replaying"
+                : "Listening"
               : status?.state === "connected"
                 ? "Connected"
                 : status?.state === "error"
-                  ? "Capture error"
-                  : "Disconnected"}
-        </span>
-        <span className="source-tag">
-          {!status || status.state === "disconnected"
+                  ? "Error"
+                  : "Disconnected"
+        }
+        source={
+          !status || status.state === "disconnected"
             ? "NO ACTIVE SOURCE"
-            : status?.config.kind === "mock"
-              ? "SIMULATED DATA"
-              : status?.config.kind === "replay"
-                ? "RECORDED PLAYBACK"
-                : status?.state === "listening"
-                  ? "HARDWARE · SAMPLED · RECEIVE ONLY"
-                  : status?.state === "querying"
-                    ? "HARDWARE · ACTIVE PID READS"
-                    : "HARDWARE · IDLE"}
-        </span>
-        <span>
-          {status?.config.channel ?? "can0"} ·{" "}
-          {status?.config.can_bitrate.toLocaleString("en-US") ?? "—"} bit/s
-        </span>
-        <span>Session: {status?.session_name ?? "—"}</span>
-        <span className={status?.recording_id ? "recording" : "live-only"}>
-          {status?.recording_id ? (
-            <>
-              <i />
-              Saving raw data
-            </>
-          ) : (
-            "Live only · Not saving"
-          )}
-        </span>
-        <span className="strip-end">
-          {status?.config.kind === "replay"
-            ? "Original timestamps preserved"
-            : status?.config.kind === "mock"
-              ? "Timestamps: simulation"
-              : "Timestamps: PC receive"}{" "}
-          · Classical CAN
-        </span>
-      </div>
+            : status.config.kind === "replay"
+              ? "RECORDED PLAYBACK"
+              : "RAW CAN"
+        }
+        detail={`${status?.config.channel ?? "can0"} · ${(status?.config.can_bitrate ?? 500000).toLocaleString("en-US")} bit/s`}
+        count={`${(status?.stats.received_frames ?? 0).toLocaleString("en-US")} frames`}
+        saving={status?.recording_id ? "active" : "off"}
+        timestamps={
+          status?.config.kind === "replay"
+            ? "Original timestamps"
+            : "PC receive timestamps"
+        }
+      />
     </>
   );
 }
@@ -199,7 +160,6 @@ function CaptureWorkspace({ onVehicle }: { onVehicle: () => void }) {
     </>
   );
 }
-
 export default function App() {
   const readView = () =>
     new URLSearchParams(location.search).get("view") === "vehicle";

@@ -15,7 +15,7 @@ export default defineConfig({
   },
   webServer: [
     {
-      command: `"${resolve(import.meta.dirname, "../.venv/Scripts/python.exe")}" -m uvicorn backend.main:app --app-dir .. --host 127.0.0.1 --port 8001`,
+      command: `"${resolve(import.meta.dirname, "../.venv/Scripts/python.exe")}" -m uvicorn tests.mock_app:create_mock_app --factory --app-dir .. --host 127.0.0.1 --port 8001`,
       url: "http://127.0.0.1:8001/api/status",
       reuseExistingServer: false,
       env: {

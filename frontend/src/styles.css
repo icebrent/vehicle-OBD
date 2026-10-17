@@ -6,7 +6,8 @@
   background: var(--color-0b1118);
   font-synthesis: none;
   color-scheme: var(--theme-color-scheme);
-  font-size: 12px;
+  font-size: 16px;
+  line-height: 1.5;
 }
 * {
   box-sizing: border-box;
@@ -100,13 +101,13 @@ h1 span {
   margin: 0 12px;
 }
 h1 em {
-  font-size: 14px;
+  font-size: 16px;
   font-style: normal;
   color: var(--color-91a5b9);
   font-weight: 400;
 }
 .brand p {
-  font-size: 9px;
+  font-size: 14px;
   letter-spacing: 2px;
   color: var(--color-5f7991);
   margin-top: 5px;
@@ -135,7 +136,7 @@ h1 em {
   color: var(--color-68bda7);
 }
 .connection {
-  font-size: 11px;
+  font-size: 15px;
   color: var(--color-8193a5);
 }
 .connection i,
@@ -164,7 +165,7 @@ h1 em {
   align-items: center;
   gap: 22px;
   border-bottom: 1px solid var(--color-202d3b);
-  font-size: 11px;
+  font-size: 15px;
   color: var(--color-7f94a7);
   background: var(--color-101a24);
 }
@@ -176,7 +177,7 @@ h1 em {
 }
 .source-tag,
 .tag {
-  font-size: 9px;
+  font-size: 14px;
   letter-spacing: 0.6px;
   background: var(--color-182b34);
   border: 1px solid var(--color-27434d);
@@ -221,11 +222,32 @@ main {
 }
 .field label {
   color: var(--color-7f94a9);
-  font-size: 10px;
+  font-size: 14px;
   letter-spacing: 0.6px;
 }
 .field select {
   width: 100%;
+}
+.controls .port-field {
+  flex: 0 0 220px;
+  width: 220px;
+  min-width: 0;
+  max-width: 100%;
+}
+.port-field select {
+  flex: 1;
+  width: 0;
+  min-width: 0;
+  text-overflow: ellipsis;
+}
+.port-field button {
+  flex: 0 0 42px;
+}
+@media (max-width: 650px) {
+  .controls .port-field {
+    flex: 1 1 100%;
+    width: 100%;
+  }
 }
 .narrow {
   min-width: 100px;
@@ -235,10 +257,6 @@ main {
   display: flex;
   gap: 6px;
   align-items: center;
-}
-.vehicle {
-  margin-left: auto;
-  min-width: 210px;
 }
 .control-buttons {
   display: flex;
@@ -256,7 +274,7 @@ main {
 .hardware-note {
   width: 100%;
   color: var(--color-dfb56c);
-  font-size: 11px;
+  font-size: 15px;
 }
 .metrics {
   display: grid;
@@ -276,7 +294,7 @@ main {
   border: 0;
 }
 .metrics span {
-  font-size: 11px;
+  font-size: 15px;
   color: var(--color-8298ab);
 }
 .metrics strong {
@@ -288,7 +306,7 @@ main {
   margin: 7px 0;
 }
 .metrics small {
-  font-size: 10px;
+  font-size: 14px;
   letter-spacing: 0;
   font-weight: 400;
   color: var(--color-7690a5);
@@ -296,7 +314,7 @@ main {
 }
 .metrics p {
   color: var(--color-536d83);
-  font-size: 10px;
+  font-size: 14px;
 }
 .mint {
   color: var(--color-48dfbd);
@@ -311,17 +329,17 @@ main {
   justify-content: space-between;
 }
 .eyebrow {
-  font-size: 8px;
+  font-size: 14px;
   color: var(--color-526d82);
   letter-spacing: 1.7px;
 }
 .section-heading h2 {
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 600;
   margin-top: 4px;
 }
 .subtle {
-  font-size: 10px;
+  font-size: 14px;
   color: var(--color-648095);
   font-weight: 400;
   margin-left: 7px;
@@ -350,18 +368,18 @@ main {
 }
 .table-grid {
   display: grid;
-  grid-template-columns: 140px 100px 45px minmax(230px, 1fr) 105px 85px 125px;
+  grid-template-columns: 155px 125px 45px minmax(350px, 1fr) 100px 100px 155px;
   align-items: center;
   padding: 0 18px;
   gap: 8px;
 }
 .table-head {
-  height: 34px;
+  min-height: 46px;
   border-top: 1px solid var(--color-253240);
   border-bottom: 1px solid var(--color-253240);
   background: var(--color-14212d);
   color: var(--color-6d899f);
-  font-size: 9px;
+  font-size: 14px;
   letter-spacing: 0.6px;
 }
 .table-body {
@@ -371,7 +389,7 @@ main {
 .data-row {
   border-bottom: 1px solid var(--color-1c2b38);
   font-family: Consolas, "Cascadia Code", monospace;
-  font-size: 12px;
+  font-size: 15px;
   cursor: pointer;
 }
 .data-row:hover {
@@ -387,13 +405,13 @@ main {
 }
 .data-row small {
   display: block;
-  font-size: 8px;
+  font-size: 14px;
   color: var(--color-5c7a8e);
   margin-top: 3px;
   font-weight: 400;
 }
 .frame-type {
-  font-size: 10px;
+  font-size: 14px;
   color: var(--color-7f9bb3);
 }
 .payload {
@@ -401,7 +419,7 @@ main {
   gap: 5px;
 }
 .payload b {
-  font-size: 11px;
+  font-size: 15px;
   font-weight: 400;
   padding: 3px;
   border-radius: 3px;
@@ -416,14 +434,14 @@ main {
   color: var(--color-6bb7aa);
 }
 .time {
-  font-size: 10px;
+  font-size: 14px;
   color: var(--color-889fb3);
 }
 .panel-footer {
   display: flex;
   justify-content: space-between;
   padding: 9px 18px;
-  font-size: 9px;
+  font-size: 14px;
   color: var(--color-536f85);
   border-top: 1px solid var(--color-21313f);
 }
@@ -439,7 +457,7 @@ main {
   text-align: center;
   color: var(--color-526f83);
   padding: 30px 12px;
-  font-size: 11px;
+  font-size: 15px;
 }
 .charts-layout {
   display: grid;
@@ -458,7 +476,7 @@ main {
   flex-wrap: wrap;
 }
 .byte-select label {
-  font-size: 9px;
+  font-size: 14px;
   display: flex;
   align-items: center;
   gap: 4px;
@@ -523,7 +541,7 @@ main {
   color: var(--color-93a9b9);
   padding: 1px 5px;
   border-radius: 4px;
-  font-size: 9px;
+  font-size: 14px;
 }
 .tabs .refresh-history {
   margin-left: auto;
@@ -542,12 +560,12 @@ main {
   gap: 12px;
 }
 .session-row strong {
-  font-size: 11px;
+  font-size: 15px;
 }
 .session-row small {
   display: block;
   color: var(--color-6c879d);
-  font-size: 10px;
+  font-size: 14px;
   margin-top: 4px;
 }
 .log {
@@ -555,7 +573,7 @@ main {
   gap: 16px;
   padding: 6px 18px;
   font-family: Consolas, monospace;
-  font-size: 10px;
+  font-size: 14px;
 }
 .log time {
   color: var(--color-617e94);
@@ -585,7 +603,7 @@ footer {
   align-items: center;
   border-top: 1px solid var(--color-24313e);
   padding: 11px 30px;
-  font-size: 9px;
+  font-size: 14px;
   color: var(--color-5e7a91);
   background: var(--color-0e1721);
 }
@@ -608,9 +626,6 @@ footer .dot {
   }
 }
 @media (max-width: 1100px) {
-  .vehicle {
-    margin-left: 0;
-  }
   .controls {
     gap: 10px;
   }
@@ -631,7 +646,7 @@ footer .dot {
   }
   .table-grid,
   .table-body {
-    min-width: 900px;
+    min-width: 1240px;
   }
   footer {
     flex-wrap: wrap;
@@ -693,6 +708,238 @@ footer .dot {
     align-items: flex-start;
   }
   .header-right {
-    font-size: 10px;
+    font-size: 14px;
+  }
+}
+
+/* Shared workspace shell and readable controls on both pages. */
+.workspace-header {
+  height: auto;
+  min-height: 88px;
+  gap: 24px;
+  padding: 18px 30px;
+  flex-wrap: wrap;
+}
+.workspace-header .brand h1 {
+  font-size: 24px;
+}
+.workspace-header .brand p {
+  font-size: 14px;
+  letter-spacing: 0.03em;
+}
+.workspace-header .header-right {
+  gap: 16px;
+  margin-left: auto;
+}
+.workspace-header .connection {
+  font-size: 14px;
+}
+.workspace-header .theme-toggle {
+  width: 42px;
+  height: 42px;
+}
+.workspace-nav {
+  display: flex;
+  gap: 6px;
+}
+.workspace-nav button {
+  min-height: 42px;
+  font-size: 16px;
+}
+.workspace-nav button[aria-current="page"] {
+  color: var(--color-48dfbd);
+  border-color: var(--color-48dfbd);
+  background: var(--color-102c27);
+}
+.replay-selector {
+  min-width: 0;
+  flex: 1 1 360px;
+}
+.replay-selector label {
+  display: grid;
+  gap: 7px;
+  color: var(--color-7f94a9);
+  font-size: 15px;
+}
+.replay-selector select {
+  width: 100%;
+  max-width: 100%;
+  font-size: 16px;
+}
+.replay-selection-info {
+  display: block;
+  margin-top: 6px;
+  color: var(--color-7f94a9);
+  font-size: 14px;
+}
+body {
+  line-height: 1.5;
+}
+button,
+input,
+select,
+.button {
+  min-height: 42px;
+}
+input[type="checkbox"] {
+  min-height: 20px;
+  min-width: 20px;
+}
+.status-strip {
+  flex-wrap: wrap;
+}
+.table-scroll {
+  overflow-x: auto;
+}
+.table-grid,
+.table-body {
+  min-width: 1240px;
+}
+.narrow {
+  min-width: 130px;
+  width: 130px;
+}
+.theme-toggle {
+  min-height: 42px;
+}
+@media (max-width: 760px) {
+  .workspace-header {
+    padding: 16px;
+    gap: 14px;
+  }
+  .workspace-header .brand {
+    flex: 1 1 100%;
+  }
+  .workspace-header .brand h1 {
+    font-size: 22px;
+  }
+  .workspace-header .header-right {
+    gap: 10px;
+  }
+  .workspace-header .connection {
+    display: none;
+  }
+  .workspace-nav {
+    flex: 1;
+  }
+  .status-strip,
+  footer,
+  .vt-source-notice {
+    overflow-wrap: anywhere;
+  }
+  .replay-selector {
+    flex-basis: 100%;
+    width: 100%;
+  }
+  .session-row {
+    flex-wrap: wrap;
+  }
+}
+
+.tabs {
+  flex-wrap: wrap;
+}
+.section-heading h2 {
+  font-size: 18px;
+}
+
+/* Compact shared controls: preserve the original Raw CAN toolbar. */
+.workspace-source-card {
+  overflow: visible;
+  gap: 12px;
+}
+.workspace-source-card .source-field {
+  flex: 0 0 240px;
+  width: 240px;
+  min-width: 0;
+}
+.workspace-source-card .port-field {
+  flex: 0 0 220px;
+  width: 220px;
+  min-width: 0;
+}
+.workspace-source-card .recording-name-field {
+  flex: 0 0 170px;
+  width: 170px;
+  min-width: 0;
+}
+.workspace-source-card .field {
+  gap: 7px;
+}
+.workspace-source-card select,
+.workspace-source-card input {
+  width: 100%;
+  min-width: 0;
+  text-overflow: ellipsis;
+}
+.workspace-source-card .inline > select {
+  width: 0;
+  flex: 1;
+}
+.workspace-source-card .replay-selector {
+  min-width: 0;
+  flex: 1 1 300px;
+}
+.workspace-source-card .replay-selector .inline {
+  display: flex;
+}
+.workspace-source-card .control-buttons {
+  flex-wrap: wrap;
+}
+.workspace-source-card .source-check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 42px;
+  font-size: 14px;
+  white-space: nowrap;
+}
+.workspace-source-card .source-check input {
+  width: 20px;
+  min-width: 20px;
+}
+.icon-button {
+  flex: 0 0 42px;
+  width: 42px;
+  min-height: 42px;
+  padding: 0;
+}
+.source-error {
+  flex: 1 1 100%;
+  color: var(--color-ff969e);
+}
+.workspace-status-strip {
+  min-height: 48px;
+  gap: 20px;
+  font-size: 14px;
+}
+.workspace-status-strip .status-main {
+  font-weight: 600;
+}
+.workspace-status-strip .status-detail {
+  color: var(--color-7f94a7);
+}
+.workspace-status-strip .status-timestamps {
+  margin-left: auto;
+  color: var(--color-7f94a7);
+}
+.workspace-status-strip .source-tag {
+  white-space: nowrap;
+}
+@media (max-width: 650px) {
+  .workspace-source-card .source-field,
+  .workspace-source-card .port-field,
+  .workspace-source-card .recording-name-field {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+  .workspace-source-card .control-buttons {
+    gap: 6px;
+  }
+  .workspace-status-strip {
+    gap: 10px 14px;
+  }
+  .workspace-status-strip .status-timestamps {
+    margin-left: 0;
   }
 }

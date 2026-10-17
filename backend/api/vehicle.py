@@ -1,6 +1,5 @@
 import asyncio
 import sqlite3
-from typing import Literal
 from uuid import UUID
 
 from fastapi import HTTPException
@@ -8,14 +7,11 @@ from fastapi.responses import FileResponse
 
 from backend.capture.diagnostics import DIDReplay, DIDStart, DIDStatus
 from backend.models import Schema
+from backend.vehicles.diagnostic_profiles import DIAGNOSTIC_PROFILES, DiagnosticProfile
 
 
 class SaveName(Schema):
-    name: str = "Dolphin battery observation"
-
-
-class ObservationMarker(Schema):
-    label: Literal["stationary", "forward", "reverse", "ac_on", "ac_off"]
+    name: str = "Vehicle observation"
 
 
 class DiagnosticSession(Schema):
@@ -29,12 +25,9 @@ class DiagnosticSession(Schema):
 
 
 def install_vehicle_routes(app, capture, diagnostic):
-    @app.post("/api/vehicle/markers")
-    async def mark(body: ObservationMarker):
-        try:
-            return await asyncio.to_thread(diagnostic.store.mark, body.label)
-        except ValueError as exc:
-            raise HTTPException(409, str(exc)) from exc
+    @app.get("/api/vehicle/profiles", response_model=list[DiagnosticProfile])
+    async def profiles():
+        return list(DIAGNOSTIC_PROFILES.values())
 
     @app.get("/api/vehicle/status", response_model=DIDStatus)
     async def status():

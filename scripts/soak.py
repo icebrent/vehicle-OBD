@@ -1,4 +1,4 @@
-"""Read-only real HTTP/WebSocket endurance check against an already running Mock backend."""
+"""Read-only real HTTP/WebSocket endurance check against an already running isolated test-fixture backend."""
 
 import argparse
 import json
@@ -16,8 +16,10 @@ def main():
     args = parser.parse_args()
     with httpx.Client(base_url=args.url, timeout=5) as client:
         initial = client.get("/api/status").json()
-        if initial["config"]["kind"] != "mock" or initial["state"] != "listening":
-            raise RuntimeError("Start the Mock transport before running this read-only check")
+        if initial["config"]["port"] != "COM999" or initial["state"] != "listening":
+            raise RuntimeError(
+                "Start the isolated tests.mock_app fixture server before running this read-only check"
+            )
         messages = 0
         max_rows = 0
         first_sequence = None
@@ -27,7 +29,7 @@ def main():
         with connect(ws_url, origin="http://127.0.0.1:5173", max_size=8 * 1024 * 1024) as ws:
             while time.monotonic() - start < args.seconds:
                 snapshot = json.loads(ws.recv(timeout=5))
-                assert snapshot["status"]["config"]["kind"] == "mock"
+                assert snapshot["status"]["config"]["port"] == "COM999"
                 assert snapshot["status"]["capture_session_id"] == initial["capture_session_id"]
                 assert all(row["frame"]["is_simulated"] for row in snapshot["rows"])
                 max_rows = max(max_rows, len(snapshot["rows"]))

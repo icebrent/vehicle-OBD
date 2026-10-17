@@ -1,7 +1,5 @@
-import json
 import sqlite3
 import threading
-import time
 import uuid
 from datetime import datetime, timezone
 
@@ -24,7 +22,7 @@ class DiagnosticStore:
         self.recording_id = None
         self.count = 0
 
-    def start(self, name):
+    def start(self, name, definition_version="dolphin-community-v1"):
         with self.lock:
             if self.file:
                 return
@@ -37,7 +35,7 @@ class DiagnosticStore:
                         identity,
                         name,
                         datetime.now(timezone.utc).isoformat(),
-                        "dolphin-community-v1",
+                        definition_version,
                     ),
                 )
                 self.db.commit()
@@ -73,22 +71,6 @@ class DiagnosticStore:
                     )
                     self.db.commit()
                     self.recording_id = None
-
-    def mark(self, label):
-        with self.lock:
-            if not self.recording_id:
-                raise ValueError("Start saving before adding an observation marker")
-            event = {
-                "recording_id": self.recording_id,
-                "label": label,
-                "timestamp_utc": datetime.now(timezone.utc).isoformat(),
-                "timestamp_monotonic": time.monotonic(),
-                "source": "operator_annotation",
-            }
-            path = self.directory / f"{self.recording_id}.events.ndjson"
-            with path.open("a", encoding="utf-8") as file:
-                file.write(json.dumps(event) + "\n")
-            return event
 
     def sessions(self):
         with self.lock:

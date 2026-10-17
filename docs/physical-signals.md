@@ -6,7 +6,7 @@
 
 ## 当前实验性 DID
 
-`backend/protocols/byd_did.py` 提供独立固定白名单，不从车型选择自动触发：地址 7E7 → 7EF，0005 SOC、0008 电压、0009 电流、0032 温度；可选 10 组电压极值与温度 A/B。所有响应只接受匹配的 ISO-TP 单帧。分组边界、位置与换算仍属候选。
+`backend/protocols/byd_did.py` 提供 Vehicle 页独立使用的固定白名单，由操作者手动启动：地址 7E7 → 7EF，0005 SOC、0008 电压、0009 电流、0032 温度；可选 10 组电压极值与温度 A/B。所有响应只接受匹配的 ISO-TP 单帧。分组边界、位置与换算仍属候选。
 
 来源：[公开 BYD 列表](https://github.com/loryanstrant/BYD-PID-list)、[WiCAN 配置](https://github.com/meatpiHQ/wican-fw/blob/main/vehicle_profiles.json)。不同 ECU 的相同 DID 不代表同一物理量，其他车型/市场/固件成功不代表本车成功。公开代码与测试不包含私人日志。
 

@@ -1,10 +1,10 @@
 # All response fixtures in this file are synthetic, not captured vehicle records.
 import pytest
-from conftest import wait_until
-from test_obdlink import FakeSerial, driver
 
 from backend.capture.diagnostics import DiagnosticService, DIDReplay, DIDStart
 from backend.protocols.byd_did import DolphinDIDLink, decode_response
+from tests.conftest import wait_until
+from tests.test_obdlink import FakeSerial, driver
 
 
 @pytest.mark.parametrize(
@@ -71,7 +71,7 @@ def test_stream_records_only_after_valid_response_and_stops(tmp_path, save):
 
     fake.write = write
     service = DiagnosticService(tmp_path, transport_factory=lambda config, session: driver(fake))
-    service.start(DIDStart(port="COM8", save_after_first_response=save))
+    service.start(DIDStart(vehicle_profile_id="byd-dolphin-jp", port="COM8", save_after_first_response=save))
     wait_until(lambda: service.status().received == 1)
     service.stop()
     assert service.status().state == "stopped" and fake.closed
@@ -82,7 +82,7 @@ def test_stream_records_only_after_valid_response_and_stops(tmp_path, save):
         assert sessions[0]["count"] == 1
         text = service.store.path_for(sessions[0]["id"]).read_text(encoding="utf-8")
         assert '"raw_response"' in text and '"value":60.0' in text
-        service.replay(DIDReplay(recording_id=sessions[0]["id"]))
+        service.replay(DIDReplay(vehicle_profile_id="byd-dolphin-jp", recording_id=sessions[0]["id"]))
         wait_until(lambda: service.status().state == "complete")
         assert service.status().received == 1
         assert len(service.store.sessions()) == 1
@@ -102,7 +102,7 @@ def test_missing_data_does_not_create_recording(tmp_path):
 
     fake.write = write
     service = DiagnosticService(tmp_path, transport_factory=lambda config, session: driver(fake))
-    service.start(DIDStart(port="COM8", save_after_first_response=True))
+    service.start(DIDStart(vehicle_profile_id="byd-dolphin-jp", port="COM8", save_after_first_response=True))
     wait_until(lambda: service.status().state == "error")
     service.stop()
     assert not service.store.sessions() and fake.writes[-1] == b"220005 1\r"
@@ -115,10 +115,19 @@ def test_vehicle_api_is_guarded_and_rejects_arbitrary_commands(tmp_path, monkeyp
     from backend.api.app import create_app
 
     monkeypatch.setenv("CAN_ENABLE_HARDWARE", "0")
-    with TestClient(create_app(tmp_path, autostart=False)) as client:
-        assert client.post("/api/vehicle/start", json={"port": "COM8"}).status_code == 409
+    with TestClient(create_app(tmp_path)) as client:
         assert (
-            client.post("/api/vehicle/start", json={"port": "COM8", "command": "220123"}).status_code == 422
+            client.post(
+                "/api/vehicle/start", json={"vehicle_profile_id": "byd-dolphin-jp", "port": "COM8"}
+            ).status_code
+            == 409
+        )
+        assert (
+            client.post(
+                "/api/vehicle/start",
+                json={"vehicle_profile_id": "byd-dolphin-jp", "port": "COM8", "command": "220123"},
+            ).status_code
+            == 422
         )
         assert client.get("/api/vehicle/sessions/invalid/export").status_code == 422
         assert client.post("/api/vehicle/saving/start", json={"name": "test"}).status_code == 409
@@ -139,7 +148,7 @@ def test_replay_cancel_is_prompt_and_does_not_open_hardware(tmp_path):
         reading.model_copy(update={"timestamp_monotonic": reading.timestamp_monotonic + 600})
     )
     service.store.stop()
-    service.replay(DIDReplay(recording_id=identity))
+    service.replay(DIDReplay(vehicle_profile_id="byd-dolphin-jp", recording_id=identity))
     wait_until(lambda: service.status().received == 1)
     start = time.monotonic()
     service.stop()
@@ -185,18 +194,46 @@ def test_schedule_interleaves_core_and_fixed_groups_and_halts(tmp_path):
     service.close()
 
 
-def test_observation_marker_persists_separately_without_faking_readings(tmp_path):
-    import json
+def test_observation_marker_creation_is_removed(tmp_path):
+    from fastapi.testclient import TestClient
 
-    service = DiagnosticService(tmp_path)
-    with pytest.raises(ValueError):
-        service.store.mark("stationary")
-    service.store.start("Actions")
+    from backend.api.app import create_app
+
+    with TestClient(create_app(tmp_path)) as client:
+        assert client.post("/api/vehicle/markers", json={"label": "ac_off"}).status_code == 404
+        assert "/api/vehicle/markers" not in client.get("/openapi.json").json()["paths"]
+
+
+def test_vehicle_selection_is_required_and_profiles_are_separate_from_raw(tmp_path):
+    from fastapi.testclient import TestClient
+
+    from backend.api.app import create_app
+
+    with TestClient(create_app(tmp_path)) as client:
+        assert [p["id"] for p in client.get("/api/profiles").json()] == ["generic"]
+        assert [p["id"] for p in client.get("/api/vehicle/profiles").json()] == ["byd-dolphin-jp"]
+        for model in ({}, {"vehicle_profile_id": ""}, {"vehicle_profile_id": None}):
+            assert client.post("/api/vehicle/start", json={"port": "COM8", **model}).status_code == 422
+            assert (
+                client.post(
+                    "/api/vehicle/replay",
+                    json={"recording_id": "00000000-0000-0000-0000-000000000001", **model},
+                ).status_code
+                == 422
+            )
+        assert client.get("/api/vehicle/status").json()["vehicle_profile_id"] is None
+
+
+def test_unknown_model_never_opens_transport_and_replay_requires_matching_definition(tmp_path):
+    calls = []
+    service = DiagnosticService(tmp_path, transport_factory=lambda *args: calls.append(args))
+    with pytest.raises(ValueError, match="supported vehicle"):
+        service.start(DIDStart(vehicle_profile_id="unknown", port="COM8"))
+    assert calls == [] and service.status().state == "idle"
+    service.store.start("Different decoder", "unknown-definition")
     identity = service.store.recording_id
-    marker = service.store.mark("ac_off")
     service.store.stop()
-    assert marker["source"] == "operator_annotation"
-    path = service.store.directory / f"{identity}.events.ndjson"
-    assert json.loads(path.read_text(encoding="utf-8"))["label"] == "ac_off"
-    assert service.store.path_for(identity).read_text(encoding="utf-8") == ""
+    with pytest.raises(ValueError, match="does not match"):
+        service.replay(DIDReplay(vehicle_profile_id="byd-dolphin-jp", recording_id=identity))
+    assert service.status().state == "idle" and service.thread is None
     service.close()

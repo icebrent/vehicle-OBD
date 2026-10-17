@@ -2,10 +2,10 @@ import collections
 import time
 
 import pytest
-from conftest import wait_until
 
 from backend.models import ConnectionConfig
 from backend.transports.obdlink import WHITELIST, OBDLinkTransport
+from tests.conftest import wait_until
 
 
 class FakeSerial:

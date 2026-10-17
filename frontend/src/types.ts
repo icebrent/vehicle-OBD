@@ -16,7 +16,7 @@ export interface CANFrame {
   origin_session_id: string | null;
 }
 export interface Config {
-  kind: "mock" | "obdlink" | "replay";
+  kind: "obdlink" | "replay";
   port?: string;
   monitor_strategy: "sampled_16";
   monitor_interval_seconds: number;
@@ -78,12 +78,6 @@ export interface Snapshot {
   status: Status;
   rows: Row[];
   frames: CANFrame[];
-}
-export interface Profile {
-  id: string;
-  name: string;
-  notes: string;
-  experimental: boolean;
 }
 export interface Session {
   id: string;

@@ -8,14 +8,13 @@ from datetime import datetime, timezone
 
 from backend.analysis.aggregate import Aggregator
 from backend.models import ConnectionConfig, Diagnostic, Snapshot, Stats, Status
-from backend.transports.mock import MockTransport
 
 
 class CaptureService:
     def __init__(self, store=None, profiles=None, queue_size=None):
         self.store = store
         self.profiles = profiles
-        self.config = ConnectionConfig(kind=os.getenv("CAN_DEFAULT_SOURCE", "mock"))
+        self.config = ConnectionConfig(kind=os.getenv("CAN_DEFAULT_SOURCE", "obdlink"))
         self.profile_id = "generic"
         self.state = "disconnected"
         self.transport = None
@@ -65,9 +64,7 @@ class CaptureService:
             self.events.get_nowait()
         self.config = config
         self.session_id = str(uuid.uuid4())
-        if config.kind == "mock":
-            transport = MockTransport(self.session_id)
-        elif config.kind == "obdlink":
+        if config.kind == "obdlink":
             if not self.hardware_enabled:
                 raise ValueError(
                     "Hardware access is locked. After manual confirmation, set CAN_ENABLE_HARDWARE=1 and restart"

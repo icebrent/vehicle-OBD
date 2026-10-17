@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useMemo } from "react";
 import * as echarts from "echarts/core";
 import { LineChart } from "echarts/charts";
 import {
@@ -9,6 +9,7 @@ import {
 import { CanvasRenderer } from "echarts/renderers";
 import { useTheme } from "../state/theme";
 import { signalById } from "./signals";
+import { orderedTrendSignals, formatTrendTooltip } from "./trend-tooltip";
 import type { SignalId, VehicleSample } from "./signals";
 echarts.use([
   LineChart,
@@ -26,6 +27,10 @@ export function SignalTrends({
   selected: SignalId[];
   windowSeconds: number;
 }) {
+  const orderedSelected = useMemo(
+    () => orderedTrendSignals(selected),
+    [selected],
+  );
   const container = useRef<HTMLDivElement>(null);
   const chart = useRef<echarts.EChartsType | null>(null);
   const { resolved } = useTheme();
@@ -52,49 +57,54 @@ export function SignalTrends({
           backgroundColor: resolved === "light" ? "#fff" : "#18212b",
           borderColor: split,
           textStyle: { color: text },
-          valueFormatter: (v: unknown) =>
-            typeof v === "number" ? v.toFixed(2) : String(v),
+          order: "seriesAsc",
+          renderMode: "html",
+          className: "vt-trend-tooltip",
+          confine: true,
+          formatter: (params: unknown) =>
+            formatTrendTooltip(params, orderedSelected, history),
         },
         axisPointer: { link: [{ xAxisIndex: "all" }] },
-        grid: selected.map((_, i) => ({
+        grid: orderedSelected.map((_, i) => ({
           left: 69,
           right: 20,
           top: i * 104 + 23,
           height: 65,
         })),
-        xAxis: selected.map((_, i) => ({
+        xAxis: orderedSelected.map((_, i) => ({
           type: "time",
           gridIndex: i,
           min: start,
           max: end,
           splitNumber: 4,
           axisLabel: {
-            show: i === selected.length - 1,
+            show: i === orderedSelected.length - 1,
             color: text,
-            fontSize: 10,
+            fontSize: 14,
             hideOverlap: true,
           },
           axisLine: { show: false },
           axisTick: { show: false },
           splitLine: { show: false },
         })),
-        yAxis: selected.map((id, i) => ({
+        yAxis: orderedSelected.map((id, i) => ({
           type: "value",
           gridIndex: i,
           scale: true,
           name: "",
-          nameTextStyle: { color: text, fontSize: 10 },
-          axisLabel: { color: text, fontSize: 10 },
+          nameTextStyle: { color: text, fontSize: 14 },
+          axisLabel: { color: text, fontSize: 14 },
           splitNumber: 2,
           splitLine: { lineStyle: { color: split, type: "dashed" } },
         })),
-        series: selected.map((id, i) => ({
-          name: signalById[id].name,
+        series: orderedSelected.map((id, i) => ({
+          id,
+          name: `${signalById[id].name} · ${signalById[id].unit}`,
           type: "line",
           xAxisIndex: i,
           yAxisIndex: i,
           showSymbol: false,
-          step: history[0]?.source === "mock" ? false : "end",
+          step: "end",
           connectNulls: false,
           lineStyle: { width: 1.8, color: signalById[id].color },
           itemStyle: { color: signalById[id].color },
@@ -105,10 +115,10 @@ export function SignalTrends({
       },
       { notMerge: true },
     );
-  }, [history, selected, windowSeconds, resolved]);
+  }, [history, orderedSelected, windowSeconds, resolved]);
   return (
     <div className="vt-chart-wrap">
-      {selected.map((id, i) => (
+      {orderedSelected.map((id, i) => (
         <span
           key={id}
           className="vt-chart-label"
@@ -117,7 +127,7 @@ export function SignalTrends({
           {signalById[id].name} · {signalById[id].unit}
         </span>
       ))}
-      {selected.length === 0 && (
+      {orderedSelected.length === 0 && (
         <p className="vt-empty">Select a signal to build a time series.</p>
       )}
       <div
@@ -125,8 +135,8 @@ export function SignalTrends({
         role="img"
         aria-label="Physical signal time series"
         style={{
-          height: Math.max(170, selected.length * 104 + 14),
-          visibility: selected.length ? "visible" : "hidden",
+          height: Math.max(170, orderedSelected.length * 104 + 14),
+          visibility: orderedSelected.length ? "visible" : "hidden",
         }}
       />
     </div>

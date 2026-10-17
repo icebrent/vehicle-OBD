@@ -49,7 +49,7 @@ class CANFrame(Schema):
 
 
 class ConnectionConfig(Schema):
-    kind: Literal["mock", "obdlink", "replay"] = "mock"
+    kind: Literal["obdlink", "replay"] = "obdlink"
     port: str | None = Field(default=None, pattern=r"^COM[1-9][0-9]*$")
     monitor_strategy: Literal["sampled_16"] = "sampled_16"
     monitor_interval_seconds: float = Field(default=1.0, ge=0.1, le=10)
@@ -63,14 +63,6 @@ class ConnectionConfig(Schema):
 class RecordingRequest(Schema):
     name: str = Field(min_length=1, max_length=120)
     notes: str = Field(default="", max_length=2000)
-
-
-class ProfileSelection(Schema):
-    profile_id: str
-
-
-class MockScenario(Schema):
-    button: bool
 
 
 class Diagnostic(Schema):

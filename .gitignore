@@ -13,6 +13,8 @@ data/*
 !data/.gitkeep
 .env
 *.log
+# Raw log exports placed in the repository root
+/log.txt
 .env.*
 !.env.example
 .agents/

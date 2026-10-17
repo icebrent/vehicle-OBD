@@ -15,16 +15,19 @@ from backend.protocols.byd_did import (
 )
 from backend.storage.diagnostics import DiagnosticStore
 from backend.transports.obdlink import OBDLinkTransport
+from backend.vehicles.diagnostic_profiles import diagnostic_profile
 
 
 class DIDStart(Schema):
+    vehicle_profile_id: str = Field(min_length=1)
     port: str = Field(pattern=r"^COM[1-9][0-9]*$")
     save_after_first_response: bool = False
-    name: str = Field(default="Dolphin battery observation", min_length=1, max_length=120)
+    name: str = Field(default="Vehicle observation", min_length=1, max_length=120)
     include_modules: bool = False
 
 
 class DIDReplay(Schema):
+    vehicle_profile_id: str = Field(min_length=1)
     recording_id: uuid.UUID
     speed: Literal[0.5, 1, 2, 5] = 1
 
@@ -32,6 +35,7 @@ class DIDReplay(Schema):
 class DIDStatus(Schema):
     state: Literal["idle", "starting", "live", "stopped", "error", "replaying", "complete"]
     source: Literal["diagnostic", "replay"]
+    vehicle_profile_id: str | None
     last_error: str | None
     recording_id: str | None
     saving_armed: bool
@@ -49,6 +53,7 @@ class DiagnosticService:
         self.thread = None
         self.state = "idle"
         self.source = "diagnostic"
+        self.vehicle_profile_id = None
         self.error = None
         self.latest = {}
         self.history = deque(maxlen=360)
@@ -66,6 +71,7 @@ class DiagnosticService:
             return DIDStatus(
                 state=self.state,
                 source=self.source,
+                vehicle_profile_id=self.vehicle_profile_id,
                 last_error=self.error,
                 recording_id=self.store.recording_id,
                 saving_armed=self.saving,
@@ -86,8 +92,10 @@ class DiagnosticService:
         self.received = 0
 
     def start(self, config):
+        profile = diagnostic_profile(config.vehicle_profile_id)
         with self.lock:
             self._prepare("diagnostic")
+            self.vehicle_profile_id = profile.id
             self.saving, self.name = config.save_after_first_response, config.name
             self.include_modules = config.include_modules
             self.thread = threading.Thread(target=self._capture, args=(config,), daemon=True)
@@ -97,7 +105,9 @@ class DiagnosticService:
         with self.lock:
             if self.source == "diagnostic" and self.saving:
                 if not self.store.recording_id:
-                    self.store.start(self.name)
+                    self.store.start(
+                        self.name, diagnostic_profile(self.vehicle_profile_id).definition_version
+                    )
                 self.store.append(reading)
             self.latest[(reading.signal_id, reading.module_id)] = reading
             self.history.append(reading)
@@ -171,9 +181,14 @@ class DiagnosticService:
             self.name, self.saving = name, True
 
     def replay(self, config):
+        profile = diagnostic_profile(config.vehicle_profile_id)
         path = self.store.path_for(str(config.recording_id))
+        metadata = next((row for row in self.store.sessions() if row["id"] == str(config.recording_id)), None)
+        if metadata is None or metadata["definition_version"] != profile.definition_version:
+            raise ValueError("Recording definition does not match the selected vehicle model")
         with self.lock:
             self._prepare("replay")
+            self.vehicle_profile_id = profile.id
             self.saving = False
             self.thread = threading.Thread(target=self._replay, args=(path, config.speed), daemon=True)
             self.thread.start()

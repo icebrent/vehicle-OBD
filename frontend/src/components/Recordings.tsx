@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Circle, Download, History, Play, Square } from "lucide-react";
+import { RefreshButton } from "./RefreshButton";
 import { api } from "../api";
 import { useMonitor } from "../state/store";
 import type { Diagnostic, Session } from "../types";
@@ -11,7 +12,6 @@ export function Recordings({ onError }: { onError: (text: string) => void }) {
   const [logs, setLogs] = useState<Diagnostic[]>([]);
   const [tab, setTab] = useState("sessions");
   const [busy, setBusy] = useState(false);
-  const [button, setButton] = useState(false);
   const refresh = useCallback(() => {
     api<Session[]>("/sessions")
       .then(setSessions)
@@ -59,15 +59,15 @@ export function Recordings({ onError }: { onError: (text: string) => void }) {
       </div>
       <div className="record-form">
         <input
-          aria-label="Session name"
-          placeholder="Session name"
+          aria-label="Recording name"
+          placeholder="Recording name"
           maxLength={120}
           value={name}
           onChange={(e) => setName(e.target.value)}
           disabled={!!status?.recording_id}
         />
         <input
-          aria-label="Session notes"
+          aria-label="Recording notes"
           placeholder="Add notes (optional)"
           maxLength={2000}
           value={notes}
@@ -80,7 +80,7 @@ export function Recordings({ onError }: { onError: (text: string) => void }) {
             disabled={busy}
             onClick={() => run("/recording/stop")}
           >
-            <Square size={13} />
+            <Square size={16} />
             Stop saving
           </button>
         ) : (
@@ -88,23 +88,8 @@ export function Recordings({ onError }: { onError: (text: string) => void }) {
             disabled={busy || status?.state !== "listening" || !name.trim()}
             onClick={() => run("/recording/start", { name, notes })}
           >
-            <Circle size={13} />
+            <Circle size={16} />
             Start saving
-          </button>
-        )}
-        {status?.config.kind === "mock" && (
-          <button
-            aria-pressed={button}
-            onClick={async () => {
-              try {
-                await api("/mock/scenario", { button: !button });
-                setButton(!button);
-              } catch (e) {
-                onError((e as Error).message);
-              }
-            }}
-          >
-            Mock button · {button ? "ON" : "OFF"}
           </button>
         )}
       </div>
@@ -114,7 +99,7 @@ export function Recordings({ onError }: { onError: (text: string) => void }) {
           onClick={() => setTab("sessions")}
         >
           <History size={13} />
-          Session history <span>{sessions.length}</span>
+          Recording history <span>{sessions.length}</span>
         </button>
         <button
           className={tab === "logs" ? "active" : ""}
@@ -122,9 +107,11 @@ export function Recordings({ onError }: { onError: (text: string) => void }) {
         >
           Adapter diagnostics
         </button>
-        <button className="refresh-history" onClick={refresh}>
-          Refresh
-        </button>
+        <RefreshButton
+          className="refresh-history"
+          label="Refresh history"
+          onClick={refresh}
+        />
       </div>
       <div className="history-list">
         {tab === "sessions" ? (
@@ -146,22 +133,20 @@ export function Recordings({ onError }: { onError: (text: string) => void }) {
                     disabled={busy || s.status === "recording"}
                     onClick={() => replay(s.id)}
                   >
-                    <Play size={12} />
+                    <Play size={16} />
                     Replay
                   </button>
                   {s.status !== "recording" && (
                     <a className="button" href={`/api/sessions/${s.id}/export`}>
-                      <Download size={12} />
-                      Export
+                      <Download size={16} />
+                      Export NDJSON
                     </a>
                   )}
                 </div>
               </div>
             ))
           ) : (
-            <div className="empty">
-              No sessions yet · Start recording to save full raw payloads
-            </div>
+            <div className="empty">No recordings yet</div>
           )
         ) : (
           logs

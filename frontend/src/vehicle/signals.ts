@@ -97,7 +97,7 @@ export const signals: SignalDefinition[] = [
     color: "#8bc9dd",
     request: "7E7 → 7EF · 22 00 11",
     evidence: "Candidate",
-    note: "Community association. Unit scaling is unverified; mock number is illustrative.",
+    note: "Community association. Unit scaling is unverified.",
   },
   {
     id: "dischargedEnergy",
@@ -107,7 +107,7 @@ export const signals: SignalDefinition[] = [
     color: "#c6b894",
     request: "7E7 → 7EF · 22 00 12",
     evidence: "Candidate",
-    note: "Community association. Unit scaling is unverified; mock number is illustrative.",
+    note: "Community association. Unit scaling is unverified.",
   },
 ];
 export const signalById = Object.fromEntries(
@@ -130,13 +130,7 @@ export interface ModuleReading {
 }
 export interface VehicleSample {
   timestamp: number;
-  source: "mock" | "diagnostic" | "replay";
+  source: "diagnostic" | "replay";
   values: Record<SignalId, number | null>;
   modules: ModuleReading[];
-}
-// Future diagnostic providers must supply timestamp, quality, provenance and stale state;
-// never fill missing hardware signals from this mock provider.
-export interface TelemetrySource {
-  readonly kind: "mock";
-  sample(timestamp: number): VehicleSample;
 }

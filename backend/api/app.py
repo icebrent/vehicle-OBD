@@ -13,9 +13,7 @@ from backend.capture.service import CaptureService
 from backend.models import (
     ConnectionConfig,
     Diagnostic,
-    MockScenario,
     PortInfo,
-    ProfileSelection,
     RecordingRequest,
     RecordingStarted,
     SessionRecord,
@@ -25,7 +23,7 @@ from backend.protocols.pid_probe import PIDReport, StandardPIDProbe
 from backend.storage.exporters import EXPORTERS
 
 
-def create_app(data_dir=None, autostart=None):
+def create_app(data_dir=None):
     from backend.storage.sessions import SessionStore
     from backend.vehicles.registry import ProfileRegistry
 
@@ -50,10 +48,6 @@ def create_app(data_dir=None, autostart=None):
     @asynccontextmanager
     async def lifespan(app):
         task = asyncio.create_task(service.run())
-        if autostart if autostart is not None else os.getenv("CAN_AUTOSTART_MOCK", "1") == "1":
-            async with service.lock:
-                await service.connect(ConnectionConfig())
-                await service.start()
         yield
         try:
             await asyncio.to_thread(diagnostic.close)
@@ -157,21 +151,6 @@ def create_app(data_dir=None, autostart=None):
     @app.get("/api/profiles", response_model=list[VehicleProfile])
     async def profile_list():
         return list(profiles.profiles.values())
-
-    @app.post("/api/profiles/select", response_model=ProfileSelection)
-    async def select_profile(selection: ProfileSelection):
-        if selection.profile_id not in profiles.profiles:
-            raise HTTPException(404, "Profile not found")
-        service.profile_id = selection.profile_id
-        service.log("info", f"Profile selected (decoder only): {selection.profile_id}")
-        return {"profile_id": service.profile_id}
-
-    @app.post("/api/mock/scenario", response_model=MockScenario)
-    async def scenario(body: MockScenario):
-        if service.config.kind != "mock" or service.transport is None:
-            raise HTTPException(409, "Mock source required")
-        service.transport.button = body.button
-        return body
 
     @app.post("/api/recording/start", response_model=RecordingStarted)
     async def record(body: RecordingRequest):

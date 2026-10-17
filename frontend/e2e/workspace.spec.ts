@@ -1,10 +1,12 @@
 import { test, expect } from "@playwright/test";
-test("Mock monitor, pause, charts, record, export and replay", async ({
+test("Synthetic fixture monitor, pause, charts, record, export and replay", async ({
   page,
   request,
 }) => {
   await request.post("/api/disconnect", { data: {} });
-  await request.post("/api/connect", { data: { kind: "mock" } });
+  await request.post("/api/connect", {
+    data: { kind: "obdlink", port: "COM999" },
+  });
   await request.post("/api/capture/start", { data: {} });
   const sessionsBefore = (await (await request.get("/api/sessions")).json())
     .length;
@@ -14,7 +16,7 @@ test("Mock monitor, pause, charts, record, export and replay", async ({
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/");
-  await expect(page.getByText("Live only · Not saving")).toBeVisible();
+  await expect(page.getByText("Not saving")).toBeVisible();
   await expect(
     page.getByRole("row").filter({ hasText: "18FF5010" }),
   ).toBeVisible();
@@ -37,13 +39,11 @@ test("Mock monitor, pause, charts, record, export and replay", async ({
     .toBeGreaterThan(before + 10);
   expect(await page.locator(".data-row").first().innerText()).toBe(frozen);
   await page.getByRole("button", { name: "Resume display" }).click();
-  await page.locator("#profile").selectOption("byd-dolphin-jp");
-  await expect
-    .poll(
-      async () => (await (await request.get("/api/status")).json()).profile_id,
-    )
-    .toBe("byd-dolphin-jp");
-  await page.getByLabel("Session name").fill("Browser mock validation");
+  await expect(page.locator("#profile")).toHaveCount(0);
+  await expect(
+    page.getByText("Vehicle profile · Decoder", { exact: true }),
+  ).toHaveCount(0);
+  await page.getByLabel("Recording name").fill("Browser mock validation");
   expect((await (await request.get("/api/sessions")).json()).length).toBe(
     sessionsBefore,
   );
@@ -58,17 +58,25 @@ test("Mock monitor, pause, charts, record, export and replay", async ({
     )
     .toBeGreaterThan(5);
   await page.getByRole("button", { name: "Stop saving", exact: true }).click();
+  await expect
+    .poll(
+      async () =>
+        (await (await request.get("/api/status")).json()).recording_id,
+    )
+    .toBeNull();
   const latest = (await (await request.get("/api/sessions")).json())[0];
   const exported = await request.get(`/api/sessions/${latest.id}/export`);
   expect(exported.ok()).toBeTruthy();
   expect((await exported.text()).split("\n")[0]).toContain('"data":');
-  await page
-    .getByRole("button", {
-      name: "Replay Browser mock validation",
-      exact: true,
-    })
-    .first()
-    .click();
+  await request.post("/api/disconnect", { data: {} });
+  await expect(page.locator("#source")).toBeEnabled();
+  await page.locator("#source").selectOption("replay");
+  await page.getByLabel("Raw CAN recording").selectOption(latest.id);
+  expect((await (await request.get("/api/status")).json()).state).toBe(
+    "disconnected",
+  );
+  await page.getByRole("button", { name: "Load replay", exact: true }).click();
+  await page.getByRole("button", { name: "Start replay", exact: true }).click();
   await expect
     .poll(
       async () => (await (await request.get("/api/status")).json()).config.kind,
@@ -83,7 +91,9 @@ test("theme follows the system, supports icon-only overrides and persists the ch
   request,
 }) => {
   await request.post("/api/disconnect", { data: {} });
-  await request.post("/api/connect", { data: { kind: "mock" } });
+  await request.post("/api/connect", {
+    data: { kind: "obdlink", port: "COM999" },
+  });
   await request.post("/api/capture/start", { data: {} });
   await page.emulateMedia({ colorScheme: "light" });
   await page.goto("/");
@@ -141,7 +151,9 @@ test("live workspace screenshot and narrow layout", async ({
   request,
 }) => {
   await request.post("/api/disconnect", { data: {} });
-  await request.post("/api/connect", { data: { kind: "mock" } });
+  await request.post("/api/connect", {
+    data: { kind: "obdlink", port: "COM999" },
+  });
   await request.post("/api/capture/start", { data: {} });
   await page.goto("/");
   await expect(page.locator(".data-row")).toHaveCount(5);

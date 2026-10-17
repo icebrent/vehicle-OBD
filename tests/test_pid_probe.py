@@ -1,9 +1,9 @@
 import pytest
 from fastapi.testclient import TestClient
-from test_obdlink import FakeSerial, driver
 
 from backend.api.app import create_app
 from backend.protocols.pid_probe import StandardPIDProbe, parse_responses
+from tests.test_obdlink import FakeSerial, driver
 
 
 def test_support_discovery_and_only_advertised_samples():
@@ -139,8 +139,8 @@ def test_active_capture_is_never_reused_for_queries():
     assert not fake.writes
 
 
-def test_api_rejects_mock_and_has_no_arbitrary_request(tmp_path):
-    with TestClient(create_app(tmp_path, autostart=True)) as client:
+def test_api_requires_connection_and_has_no_arbitrary_request(tmp_path):
+    with TestClient(create_app(tmp_path)) as client:
         assert client.get("/api/obd/report").json() is None
         assert client.post("/api/obd/probe", json={}).status_code == 409
         assert client.post("/api/obd/send", json={"command": "04"}).status_code == 404

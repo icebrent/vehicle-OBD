@@ -18,7 +18,7 @@ export function Monitor({
   const virtual = useVirtualizer({
     count: rows.length,
     getScrollElement: () => parent.current,
-    estimateSize: () => 46,
+    estimateSize: () => 66,
     overscan: 8,
   });
   return (
@@ -31,7 +31,7 @@ export function Monitor({
           </h2>
         </div>
         <button onClick={() => state.togglePause()}>
-          {state.paused ? <Play size={13} /> : <Pause size={13} />}{" "}
+          {state.paused ? <Play size={16} /> : <Pause size={16} />}{" "}
           {state.paused ? "Resume display" : "Pause display"}
         </button>
       </div>

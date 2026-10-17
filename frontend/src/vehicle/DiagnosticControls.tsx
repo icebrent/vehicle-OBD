@@ -1,5 +1,11 @@
 import { useEffect, useState } from "react";
+import { Play, Square, Circle, Download } from "lucide-react";
+import { SourceCard } from "../components/SourceCard";
+import { RefreshButton } from "../components/RefreshButton";
 import { api } from "../api";
+import { ReplaySelector } from "../components/ReplaySelector";
+import { hasVehicleDecoder } from "./diagnostic-profiles";
+import type { DiagnosticProfile } from "./diagnostic-profiles";
 import type { DIDState } from "./live";
 interface Session {
   id: string;
@@ -7,25 +13,33 @@ interface Session {
   started_at: string;
   count: number;
   state: string;
+  definition_version: string;
 }
 export function DiagnosticControls({
   status,
   refresh,
+  profiles,
+  vehicleProfileId,
+  onProfileChange,
 }: {
   status: DIDState | null;
   refresh: () => Promise<void>;
+  profiles: DiagnosticProfile[];
+  vehicleProfileId: string;
+  onProfileChange: (id: string) => void;
 }) {
+  const [mode, setMode] = useState<"live" | "replay">("live");
   const [ports, setPorts] = useState<{ device: string; description: string }[]>(
     [],
   );
   const [port, setPort] = useState("");
-  const [name, setName] = useState("Dolphin battery observation");
+  const [name, setName] = useState("Vehicle observation");
   const [save, setSave] = useState(false);
   const [modules, setModules] = useState(true);
   const [sessions, setSessions] = useState<Session[]>([]);
+  const [selected, setSelected] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  const [markerMessage, setMarkerMessage] = useState("");
   const running =
     !!status && ["starting", "live", "replaying"].includes(status.state);
   async function history() {
@@ -34,15 +48,18 @@ export function DiagnosticControls({
   useEffect(() => {
     void history().catch((e) => setError(e.message));
   }, [status?.recording_id, status?.state]);
+  useEffect(() => {
+    if (status?.state === "replaying") setMode("replay");
+  }, [status?.state]);
+  useEffect(() => {
+    if (!sessions.some((s) => s.id === selected && s.state !== "recording"))
+      setSelected(sessions.find((s) => s.state !== "recording")?.id ?? "");
+  }, [sessions, selected]);
   async function run(path: string, body: unknown = {}) {
     setBusy(true);
     setError("");
     try {
       await api(path, body);
-      if (path === "/vehicle/markers")
-        setMarkerMessage(
-          `Observation saved at ${new Date().toLocaleTimeString("en-US")}`,
-        );
       await refresh();
       await history();
     } catch (e) {
@@ -51,169 +68,219 @@ export function DiagnosticControls({
       setBusy(false);
     }
   }
+  const selectedSession = sessions.find((s) => s.id === selected);
+  const profile = profiles.find((p) => p.id === vehicleProfileId);
+  function startSelected() {
+    if (!profile || !hasVehicleDecoder(profile)) {
+      window.alert("Select a vehicle model before starting.");
+      document.getElementById("diagnostic-profile")?.focus();
+      return;
+    }
+    if (
+      mode === "replay" &&
+      selectedSession?.definition_version !== profile.definition_version
+    ) {
+      setError(
+        "Recording definition does not match the selected vehicle model",
+      );
+      return;
+    }
+    void (mode === "replay"
+      ? run("/vehicle/replay", {
+          vehicle_profile_id: profile.id,
+          recording_id: selected,
+          speed: 1,
+        })
+      : run("/vehicle/start", {
+          vehicle_profile_id: profile.id,
+          port,
+          name,
+          save_after_first_response: save,
+          include_modules: modules,
+        }));
+  }
   return (
-    <section
-      className="vt-live-controls"
-      aria-label="Diagnostic reading and recording controls"
+    <SourceCard
+      className="vehicle-source"
+      label="Diagnostic reading and recording controls"
     >
-      <div className="vt-live-control-row">
-        <label>
-          COM port
-          <select
-            aria-label="Diagnostic COM port"
-            value={port}
-            disabled={running}
-            onChange={(e) => setPort(e.target.value)}
+      <div className="field source-field">
+        <label htmlFor="diagnostic-source">Data source</label>
+        <select
+          id="diagnostic-source"
+          aria-label="Diagnostic data source"
+          value={mode}
+          disabled={busy || running}
+          onChange={(e) => setMode(e.target.value as "live" | "replay")}
+        >
+          <option value="live">Live DID · OBDLink MX+</option>
+          <option value="replay">Replay · Saved recording</option>
+        </select>
+      </div>
+      <div className="field vehicle-model-field">
+        <label htmlFor="diagnostic-profile">Vehicle model</label>
+        <select
+          id="diagnostic-profile"
+          aria-label="Vehicle model"
+          value={vehicleProfileId}
+          onChange={(e) => onProfileChange(e.target.value)}
+          title={profile?.name ?? "Select a vehicle"}
+        >
+          <option value="">Select a vehicle</option>
+          {profiles.filter(hasVehicleDecoder).map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.name}
+            </option>
+          ))}
+        </select>
+      </div>
+      {mode === "replay" ? (
+        <ReplaySelector
+          sessions={sessions}
+          value={selected}
+          onChange={setSelected}
+          disabled={running || busy}
+          unit="readings"
+          label="Diagnostic recording"
+          onRefresh={() => void history().catch((e) => setError(e.message))}
+          refreshing={busy}
+        />
+      ) : (
+        <div className="field port-field">
+          <label htmlFor="diagnostic-port">COM port</label>
+          <div className="inline">
+            <select
+              id="diagnostic-port"
+              aria-label="Diagnostic COM port"
+              title={
+                port
+                  ? `${port} · ${ports.find((p) => p.device === port)?.description ?? "Serial port"}`
+                  : "Select a port"
+              }
+              value={port}
+              disabled={running}
+              onChange={(e) => setPort(e.target.value)}
+            >
+              <option value="">Select a port</option>
+              {ports.map((p) => (
+                <option key={p.device} value={p.device}>
+                  {p.device} · {p.description}
+                </option>
+              ))}
+            </select>
+            <RefreshButton
+              label="Refresh ports"
+              disabled={busy}
+              onClick={async () => {
+                try {
+                  setPorts(await api("/ports"));
+                } catch (e) {
+                  setError((e as Error).message);
+                }
+              }}
+            />
+          </div>
+        </div>
+      )}
+      {mode === "live" && (
+        <>
+          <div className="field recording-name-field">
+            <label htmlFor="diagnostic-name">Recording name</label>
+            <input
+              id="diagnostic-name"
+              aria-label="Diagnostic session name"
+              value={name}
+              maxLength={120}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </div>
+          <label
+            className="source-check"
+            title="Save after the first valid response"
           >
-            <option value="">Select outgoing port</option>
-            {ports.map((p) => (
-              <option key={p.device} value={p.device}>
-                {p.device} · {p.description}
-              </option>
-            ))}
-          </select>
-        </label>
+            <input
+              type="checkbox"
+              aria-label="Save after first response"
+              checked={save}
+              disabled={running}
+              onChange={(e) => setSave(e.target.checked)}
+            />
+            Auto-save
+          </label>
+          <label
+            className="source-check"
+            title="Read battery groups (experimental)"
+          >
+            <input
+              type="checkbox"
+              aria-label="Read battery groups (experimental)"
+              checked={modules}
+              disabled={running}
+              onChange={(e) => setModules(e.target.checked)}
+            />
+            Battery groups
+          </label>
+        </>
+      )}
+      <div className="control-buttons">
         <button
-          onClick={async () => {
-            try {
-              setPorts(await api("/ports"));
-            } catch (e) {
-              setError((e as Error).message);
-            }
-          }}
-        >
-          Refresh ports
-        </button>
-        <label>
-          Session name
-          <input
-            value={name}
-            maxLength={120}
-            onChange={(e) => setName(e.target.value)}
-            aria-label="Diagnostic session name"
-          />
-        </label>
-        <label className="vt-save-toggle">
-          <input
-            type="checkbox"
-            checked={save}
-            onChange={(e) => setSave(e.target.checked)}
-          />
-          Save after first response
-        </label>
-        <button
-          disabled={busy || running || !port}
-          onClick={() =>
-            run("/vehicle/start", {
-              port,
-              name,
-              save_after_first_response: save,
-              include_modules: modules,
-            })
+          className="primary"
+          aria-label={mode === "replay" ? "Start replay" : "Start DID reads"}
+          title={mode === "replay" ? "Start replay" : "Start DID reads"}
+          disabled={
+            busy ||
+            running ||
+            (!!profile &&
+              (mode === "replay"
+                ? !selectedSession || selectedSession.state === "recording"
+                : !port))
           }
+          onClick={startSelected}
         >
-          Start DID reads
+          <Play size={16} />
+          Start
         </button>
-        <label className="vt-save-toggle">
-          <input
-            type="checkbox"
-            checked={modules}
-            disabled={running}
-            onChange={(event) => setModules(event.target.checked)}
-          />
-          Read battery groups (experimental)
-        </label>
         <button
           disabled={busy || !running}
           onClick={() => run("/vehicle/stop")}
         >
-          Stop reads / replay
+          <Square size={16} />
+          Stop
         </button>
-        <button
-          disabled={busy || status?.state !== "live"}
-          onClick={() =>
-            run(
-              status?.saving_armed
-                ? "/vehicle/saving/stop"
-                : "/vehicle/saving/start",
-              { name },
-            )
-          }
-        >
-          {status?.saving_armed ? "Stop saving" : "Start saving"}
-        </button>
-      </div>
-      <p className="vt-detail-note">
-        {status?.state ?? "Offline"} · {status?.received ?? 0} responses ·{" "}
-        {status?.recording_id
-          ? "SAVING RAW RESPONSES + VALUES"
-          : status?.saving_armed
-            ? "Saving armed: waiting for first valid response"
-            : "Not saving"}{" "}
-        · Fixed 7E7 → 7EF · Fixed read-only whitelist · 0.5 s wait after each
-        response
-      </p>
-      <div className="vt-live-control-row" aria-label="Observation markers">
-        <span>Mark observation (notes only):</span>
-        {(
-          [
-            ["stationary", "Stationary"],
-            ["forward", "Forward"],
-            ["reverse", "Reverse"],
-            ["ac_on", "A/C on"],
-            ["ac_off", "A/C off"],
-          ] as const
-        ).map(([label, title]) => (
+        {mode === "live" && (
           <button
-            key={label}
-            disabled={busy || !status?.recording_id}
-            onClick={() => run("/vehicle/markers", { label })}
+            disabled={busy || status?.state !== "live"}
+            onClick={() =>
+              run(
+                status?.saving_armed
+                  ? "/vehicle/saving/stop"
+                  : "/vehicle/saving/start",
+                { name },
+              )
+            }
           >
-            {title}
+            {status?.saving_armed ? <Square size={16} /> : <Circle size={16} />}
+            {status?.saving_armed ? "Stop saving" : "Start saving"}
           </button>
-        ))}
-        <span>Passenger / parked use only</span>
-        <span role="status">{markerMessage}</span>
+        )}
+        {mode === "replay" &&
+          selectedSession &&
+          selectedSession.state !== "recording" && (
+            <a
+              className="button"
+              href={`/api/vehicle/sessions/${selected}/export`}
+            >
+              <Download size={16} />
+              Export NDJSON
+            </a>
+          )}
       </div>
+
       {(error || status?.last_error) && (
-        <p role="alert" className="vt-live-error">
+        <p role="alert" className="source-error">
           {error || status?.last_error}
         </p>
       )}
-      <details className="vt-provenance">
-        <summary>
-          <span>Diagnostic recordings / replay</span>
-          <span>{sessions.length} sessions</span>
-        </summary>
-        {sessions.length === 0 && (
-          <p className="vt-detail-note">No diagnostic recordings yet.</p>
-        )}
-        {sessions.map((s) => (
-          <div key={s.id} className="vt-recording-row">
-            <span>
-              <strong>{s.name}</strong> ·{" "}
-              {new Date(s.started_at).toLocaleString("en-US")} · {s.count}{" "}
-              readings · {s.state}
-            </span>
-            <button
-              disabled={running || busy || s.state === "recording"}
-              onClick={() =>
-                run("/vehicle/replay", { recording_id: s.id, speed: 1 })
-              }
-            >
-              Replay
-            </button>
-            {s.state !== "recording" && (
-              <a
-                className="button"
-                href={`/api/vehicle/sessions/${s.id}/export`}
-              >
-                Export NDJSON
-              </a>
-            )}
-          </div>
-        ))}
-      </details>
-    </section>
+    </SourceCard>
   );
 }

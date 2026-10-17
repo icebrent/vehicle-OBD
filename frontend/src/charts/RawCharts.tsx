@@ -66,12 +66,12 @@ function chartBase(light: boolean) {
     grid: { left: 42, right: 16, top: 15, bottom: 28 },
     xAxis: {
       type: "time",
-      axisLabel: { color: light ? "#526a80" : "#657b91", fontSize: 10 },
+      axisLabel: { color: light ? "#526a80" : "#657b91", fontSize: 14 },
       splitLine: { show: false },
     },
     yAxis: {
       type: "value",
-      axisLabel: { color: light ? "#526a80" : "#657b91", fontSize: 10 },
+      axisLabel: { color: light ? "#526a80" : "#657b91", fontSize: 14 },
       splitLine: { lineStyle: { color: light ? "#e0e7ef" : "#1b2936" } },
     },
   };

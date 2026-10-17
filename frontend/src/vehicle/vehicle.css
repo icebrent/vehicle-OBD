@@ -1,11 +1,11 @@
 .vt-workspace {
-  --vt-bg: #10161c;
-  --vt-surface: #151d24;
-  --vt-raised: #1a242d;
-  --vt-line: #2b3741;
-  --vt-text: #e0e6ea;
-  --vt-muted: #84939f;
-  --vt-accent: #63d6bd;
+  --vt-bg: var(--color-0b1118);
+  --vt-surface: var(--color-101923);
+  --vt-raised: var(--color-17222d);
+  --vt-line: var(--color-253240);
+  --vt-text: var(--color-c9d7e5);
+  --vt-muted: var(--color-7f94a7);
+  --vt-accent: var(--color-48dfbd);
   --vt-car-light: #36434d;
   --vt-car-dark: #202c35;
   --vt-car-edge: #54636f;
@@ -16,13 +16,6 @@
   color: var(--vt-text);
 }
 [data-theme="light"] .vt-workspace {
-  --vt-bg: #f3f5f6;
-  --vt-surface: #ffffff;
-  --vt-raised: #edf2f4;
-  --vt-line: #d7e0e5;
-  --vt-text: #24323d;
-  --vt-muted: #637580;
-  --vt-accent: #148d77;
   --vt-car-light: #dbe3e8;
   --vt-car-dark: #b6c5cf;
   --vt-car-edge: #8b9eab;
@@ -46,7 +39,7 @@
 }
 .vt-wordmark,
 .vt-header-actions,
-.vt-demo-notice,
+.vt-source-notice,
 .vt-playback,
 .vt-panel-heading,
 .vt-tabs,
@@ -58,7 +51,7 @@
 .vt-wordmark {
   gap: 14px;
   letter-spacing: 0.08em;
-  font-size: 11px;
+  font-size: 15px;
 }
 .vt-wordmark strong {
   font-weight: 600;
@@ -80,32 +73,32 @@
 .vt-header-actions {
   gap: 14px;
 }
-.vt-mock-badge {
+.vt-source-badge {
   display: inline-flex;
   align-items: center;
   gap: 7px;
   color: var(--vt-accent);
-  font-size: 10px;
+  font-size: 14px;
   letter-spacing: 0.12em;
 }
-.vt-mock-badge i,
-.vt-demo-notice i {
+.vt-source-badge i,
+.vt-source-notice i {
   height: 5px;
   width: 5px;
   border-radius: 50%;
   background: var(--vt-accent);
   display: inline-block;
 }
-.vt-demo-notice {
+.vt-source-notice {
   justify-content: space-between;
   gap: 14px;
   padding: 10px 32px;
-  font-size: 10px;
+  font-size: 14px;
   color: var(--vt-muted);
   border-bottom: 1px solid var(--vt-line);
   background: color-mix(in srgb, var(--vt-accent) 3%, var(--vt-bg));
 }
-.vt-demo-notice i {
+.vt-source-notice i {
   margin-right: 7px;
 }
 .vt-main {
@@ -123,7 +116,7 @@
 .vt-kicker {
   color: var(--vt-muted);
   letter-spacing: 0.15em;
-  font-size: 9px;
+  font-size: 14px;
   font-weight: 600;
 }
 .vt-page-heading h1 {
@@ -138,7 +131,7 @@
 }
 .vt-page-heading p {
   color: var(--vt-muted);
-  font-size: 11px;
+  font-size: 15px;
 }
 .vt-page-heading p span {
   padding: 0 7px;
@@ -147,7 +140,7 @@
   gap: 9px;
 }
 .vt-playback label {
-  font-size: 10px;
+  font-size: 14px;
   color: var(--vt-muted);
   margin-right: 4px;
 }
@@ -180,10 +173,10 @@
   gap: 9px;
   align-items: center;
   color: var(--vt-muted);
-  font-size: 11px;
+  font-size: 15px;
 }
 .vt-summary-strip small {
-  font-size: 7px;
+  font-size: 14px;
   letter-spacing: 0.08em;
 }
 .vt-summary-strip strong {
@@ -198,7 +191,7 @@
 .vt-summary-strip em {
   font-style: normal;
   color: var(--vt-muted);
-  font-size: 12px;
+  font-size: 15px;
   margin-left: 6px;
   letter-spacing: 0;
 }
@@ -233,7 +226,7 @@
 }
 .vt-tabs button {
   border: 0;
-  font-size: 10px;
+  font-size: 14px;
   padding: 7px 10px;
   color: var(--vt-muted);
 }
@@ -243,11 +236,11 @@
 }
 .vt-subtle {
   color: var(--vt-muted);
-  font-size: 10px;
+  font-size: 14px;
 }
 .vt-subtle span {
   margin-left: 12px;
-  font-size: 8px;
+  font-size: 14px;
   opacity: 0.8;
 }
 .vt-car {
@@ -309,7 +302,7 @@
 }
 .vt-svg-label {
   fill: var(--vt-muted);
-  font-size: 11px;
+  font-size: 15px;
   letter-spacing: 1.4px;
 }
 .vt-svg-value {
@@ -324,16 +317,16 @@
 }
 .vt-svg-small {
   fill: var(--vt-muted);
-  font-size: 10px;
+  font-size: 14px;
   letter-spacing: 0.6px;
 }
 .vt-module-id {
   fill: var(--vt-muted);
-  font-size: 8px;
+  font-size: 14px;
 }
 .vt-module-temp {
   fill: var(--vt-text);
-  font-size: 12px;
+  font-size: 15px;
   font-variant-numeric: tabular-nums;
 }
 .vt-model-caption {
@@ -341,7 +334,7 @@
   justify-content: space-between;
   gap: 12px;
   padding: 11px 20px;
-  font-size: 9px;
+  font-size: 14px;
   color: var(--vt-muted);
   border-top: 1px solid var(--vt-line);
 }
@@ -389,15 +382,15 @@
 }
 .vt-readings dt {
   color: var(--vt-muted);
-  font-size: 10px;
+  font-size: 14px;
 }
 .vt-readings dd {
   font-variant-numeric: tabular-nums;
-  font-size: 13px;
+  font-size: 15px;
   margin: 0;
 }
 .vt-readings small {
-  font-size: 9px;
+  font-size: 14px;
   color: var(--vt-muted);
 }
 .vt-accent {
@@ -410,16 +403,16 @@
 }
 .vt-definition strong {
   font-weight: 500;
-  font-size: 11px;
+  font-size: 15px;
 }
 .vt-definition code {
-  font-size: 9px;
+  font-size: 14px;
   color: var(--vt-accent);
 }
 .vt-definition p,
 .vt-inspector-note {
   color: var(--vt-muted);
-  font-size: 10px;
+  font-size: 14px;
   line-height: 1.6;
 }
 .vt-inspector-note {
@@ -429,7 +422,7 @@
   display: flex;
   gap: 6px;
   align-items: center;
-  font-size: 9px;
+  font-size: 14px;
   color: var(--vt-muted);
   padding: 11px 20px;
   border-top: 1px solid var(--vt-line);
@@ -457,13 +450,13 @@
   gap: 10px;
 }
 .vt-module-details summary strong {
-  font-size: 12px;
+  font-size: 15px;
   font-weight: 500;
 }
 .vt-module-details summary span span,
 .vt-module-details summary > span:last-child {
   color: var(--vt-muted);
-  font-size: 10px;
+  font-size: 14px;
 }
 .vt-module-details[open] > summary > span:last-child svg {
   transform: rotate(180deg);
@@ -488,10 +481,10 @@
 .vt-modules-grid button > span:first-child {
   display: flex;
   justify-content: space-between;
-  font-size: 10px;
+  font-size: 14px;
 }
 .vt-modules-grid small {
-  font-size: 7px;
+  font-size: 14px;
   color: var(--vt-accent);
 }
 .vt-modules-grid strong {
@@ -502,7 +495,7 @@
   font-variant-numeric: tabular-nums;
 }
 .vt-modules-grid em {
-  font-size: 10px;
+  font-size: 14px;
   color: var(--vt-muted);
   font-style: normal;
   margin-left: 3px;
@@ -512,7 +505,7 @@
   overflow-wrap: anywhere;
   display: block;
   color: var(--vt-muted);
-  font-size: 8px;
+  font-size: 14px;
   margin-top: 8px;
   font-variant-numeric: tabular-nums;
 }
@@ -528,7 +521,7 @@
 }
 .vt-detail-note {
   color: var(--vt-muted);
-  font-size: 10px;
+  font-size: 14px;
   padding: 0 0 16px;
   line-height: 1.7;
 }
@@ -560,7 +553,7 @@
   justify-content: space-between;
   padding: 0 8px 12px;
   color: var(--vt-muted);
-  font-size: 8px;
+  font-size: 14px;
   letter-spacing: 0.1em;
 }
 .vt-signal-picker label {
@@ -589,18 +582,35 @@
   flex-shrink: 0;
 }
 .vt-signal-picker label span {
-  font-size: 10px;
+  font-size: 14px;
+}
+.vt-signal-picker .vt-signal-name {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.vt-signal-picker .vt-derived-badge {
+  display: inline-flex;
+  padding: 1px 5px;
+  border: 1px solid #e9ae42;
+  border-radius: 4px;
+  background: #f3bd54;
+  color: #392600;
+  font-weight: 750;
+  line-height: 1.4;
+  letter-spacing: 0.03em;
 }
 .vt-signal-picker label small {
   display: block;
-  font-size: 8px;
+  font-size: 14px;
   color: var(--vt-muted);
   margin-top: 4px;
 }
 .vt-signal-picker label strong {
   margin-left: auto;
   font-weight: 450;
-  font-size: 10px;
+  font-size: 14px;
   font-variant-numeric: tabular-nums;
 }
 .vt-candidate-signals {
@@ -613,13 +623,13 @@
   align-items: center;
   justify-content: space-between;
   color: var(--vt-muted);
-  font-size: 10px;
+  font-size: 14px;
 }
 .vt-candidate-signals[open] summary {
   margin-bottom: 8px;
 }
 .vt-picker-note {
-  font-size: 9px;
+  font-size: 14px;
   color: var(--vt-muted);
   line-height: 1.7;
   padding: 20px 8px 0;
@@ -635,12 +645,12 @@
   display: grid;
   place-content: center;
   color: var(--vt-muted);
-  font-size: 11px;
+  font-size: 15px;
 }
 .vt-chart-label {
   position: absolute;
   left: 78px;
-  font-size: 9px;
+  font-size: 14px;
   pointer-events: none;
   letter-spacing: 0.03em;
 }
@@ -654,7 +664,7 @@
   align-items: center;
   padding: 14px 0;
   color: var(--vt-muted);
-  font-size: 10px;
+  font-size: 14px;
 }
 .vt-provenance summary span {
   display: flex;
@@ -667,7 +677,7 @@
 .vt-evidence-table table {
   border-collapse: collapse;
   width: 100%;
-  font-size: 10px;
+  font-size: 14px;
   text-align: left;
 }
 .vt-evidence-table th {
@@ -682,7 +692,7 @@
 }
 .vt-evidence-table code {
   white-space: nowrap;
-  font-size: 9px;
+  font-size: 14px;
 }
 .vt-provenance .vt-detail-note {
   margin-top: 12px;
@@ -694,7 +704,7 @@
   gap: 8px;
   color: var(--vt-muted);
   padding: 15px 0 0;
-  font-size: 9px;
+  font-size: 14px;
   flex-wrap: wrap;
 }
 .vt-bottom-note > span:nth-of-type(2) {
@@ -703,7 +713,7 @@
 .vt-bottom-note button {
   border: 0;
   padding: 4px 0 4px 12px;
-  font-size: 9px;
+  font-size: 14px;
 }
 .vt-sr-only {
   position: absolute;
@@ -725,7 +735,7 @@
 }
 .vt-source-switch span {
   color: var(--vt-muted);
-  font-size: 10px;
+  font-size: 14px;
   margin-left: auto;
 }
 .vt-live-controls {
@@ -744,7 +754,7 @@
 .vt-live-control-row label {
   display: grid;
   gap: 6px;
-  font-size: 10px;
+  font-size: 14px;
   color: var(--vt-muted);
 }
 .vt-live-control-row select {
@@ -770,7 +780,7 @@
   padding: 10px 0;
   border-top: 1px solid var(--vt-line);
   flex-wrap: wrap;
-  font-size: 10px;
+  font-size: 14px;
 }
 .vt-recording-row > span {
   flex: 1;
@@ -815,16 +825,16 @@
     padding-block: 12px;
   }
   .vt-wordmark {
-    font-size: 9px;
+    font-size: 14px;
     gap: 8px;
   }
   .vt-header-actions {
     gap: 8px;
   }
   .vt-header-actions > button:last-child {
-    font-size: 9px;
+    font-size: 14px;
   }
-  .vt-demo-notice {
+  .vt-source-notice {
     padding-inline: 15px;
     flex-wrap: wrap;
     gap: 6px;
@@ -884,18 +894,18 @@
     padding: 13px 12px;
   }
   .vt-tabs button {
-    font-size: 9px;
+    font-size: 14px;
     padding: 6px;
   }
   .vt-panel-heading > .vt-subtle {
-    font-size: 8px;
+    font-size: 14px;
   }
   .vt-subtle span {
     display: none;
   }
   .vt-model-caption {
     padding: 10px 12px;
-    font-size: 8px;
+    font-size: 14px;
   }
   .vt-module-details > summary > span:first-child {
     flex-wrap: wrap;
@@ -904,7 +914,7 @@
   .vt-module-details summary span span {
     flex-basis: 100%;
     padding-left: 23px;
-    font-size: 9px;
+    font-size: 14px;
   }
   .vt-modules-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -918,7 +928,7 @@
   }
   .vt-window-controls select {
     max-width: 140px;
-    font-size: 9px;
+    font-size: 14px;
   }
   .vt-trends-grid {
     grid-template-columns: 1fr;
@@ -938,5 +948,200 @@
   }
   .vt-bottom-note button {
     margin-left: auto;
+  }
+}
+
+.vt-workspace .workspace-header button {
+  background: var(--color-17222d);
+  color: var(--color-c6d6e5);
+  border-color: var(--color-2a3948);
+}
+.vt-workspace .workspace-nav button[aria-current="page"] {
+  color: var(--color-48dfbd);
+  border-color: var(--color-48dfbd);
+  background: var(--color-102c27);
+}
+.vt-live-control-row > label {
+  max-width: 100%;
+}
+.vt-live-control-row input {
+  max-width: 100%;
+}
+.vt-live-controls .replay-selector {
+  flex-basis: 600px;
+}
+.vt-live-controls .replay-selector select {
+  max-width: 100%;
+}
+.vt-panel-heading,
+.vt-bottom-note {
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.vt-trends-grid {
+  grid-template-columns: 280px minmax(0, 1fr);
+}
+.vt-overview-grid {
+  grid-template-columns: minmax(0, 1fr) 350px;
+}
+@media (max-width: 760px) {
+  .vt-overview-grid,
+  .vt-trends-grid {
+    grid-template-columns: 1fr;
+  }
+  .vt-source-notice span,
+  .vt-bottom-note span {
+    min-width: 0;
+  }
+  .vt-window-controls {
+    flex-wrap: wrap;
+  }
+  .vt-live-control-row > button,
+  .vt-live-control-row > label {
+    max-width: 100%;
+  }
+}
+
+.vt-summary-strip button > span:first-child {
+  flex-wrap: wrap;
+}
+
+.vt-source-field {
+  display: grid;
+  gap: 6px;
+  width: 280px;
+  max-width: 100%;
+  margin-bottom: 18px;
+}
+.vt-source-field label {
+  font-size: 14px;
+  color: var(--vt-muted);
+}
+.vt-source-field select {
+  width: 100%;
+  min-width: 0;
+  text-overflow: ellipsis;
+}
+.vt-live-control-row .vt-port-field {
+  flex: 0 0 220px;
+  width: 220px;
+  min-width: 0;
+}
+.vt-port-field select {
+  width: 100%;
+  min-width: 0;
+  text-overflow: ellipsis;
+}
+.vt-trend-tooltip-heading {
+  margin-bottom: 8px;
+}
+.vt-trend-tooltip-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 0;
+}
+.vt-trend-tooltip-row > i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex: none;
+}
+.vt-trend-tooltip-row > strong {
+  margin-left: auto;
+  padding-left: 18px;
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 760px) {
+  .vt-source-field {
+    width: 100%;
+  }
+  .vt-live-control-row .vt-port-field {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+}
+
+/* Match the compact Raw CAN shell and control surfaces. */
+.vt-main {
+  max-width: 1760px;
+  padding: 22px 30px;
+}
+.vt-page-heading {
+  margin: 20px 0;
+}
+.vt-page-heading h1 {
+  font-size: 24px;
+  margin: 4px 0;
+  letter-spacing: 0;
+  font-weight: 600;
+}
+.vt-page-heading p {
+  font-size: 14px;
+}
+.vt-workspace .workspace-source-card {
+  background: var(--color-101923);
+  border-color: var(--color-253240);
+}
+.vt-workspace .workspace-source-card button,
+.vt-workspace .workspace-source-card .button {
+  background: var(--color-17222d);
+  color: var(--color-c6d6e5);
+  border-color: var(--color-2a3948);
+}
+.vt-workspace .workspace-source-card button:hover,
+.vt-workspace .workspace-source-card .button:hover {
+  background: var(--color-233442);
+  border-color: var(--color-4e7182);
+}
+.vt-workspace .workspace-source-card button.primary {
+  background: var(--color-36c4a5);
+  color: var(--color-07251e);
+  border-color: var(--color-48dfbd);
+}
+.vt-workspace .workspace-source-card select,
+.vt-workspace .workspace-source-card input {
+  background: var(--color-0d151e);
+  color: var(--color-c5d4e3);
+  border-color: var(--color-293746);
+}
+@media (max-width: 650px) {
+  .vt-main {
+    padding: 14px;
+  }
+}
+
+.vehicle-source {
+  gap: 10px;
+}
+.vehicle-source .source-field {
+  flex-basis: 220px;
+  width: 220px;
+}
+.vehicle-source .vehicle-model-field {
+  flex: 0 0 180px;
+  width: 180px;
+  min-width: 0;
+}
+.vehicle-source .port-field {
+  flex-basis: 200px;
+  width: 200px;
+}
+.vehicle-source .recording-name-field {
+  flex-basis: 140px;
+  width: 140px;
+}
+.vt-empty-model {
+  color: var(--vt-muted);
+  padding: 20px 0;
+  font-size: 16px;
+}
+@media (max-width: 650px) {
+  .vehicle-source .source-field,
+  .vehicle-source .vehicle-model-field,
+  .vehicle-source .port-field,
+  .vehicle-source .recording-name-field {
+    flex: 1 1 100%;
+    width: 100%;
   }
 }

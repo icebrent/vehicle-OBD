@@ -67,6 +67,7 @@ export interface DIDState {
     | "replaying"
     | "complete";
   source: "diagnostic" | "replay";
+  vehicle_profile_id: string | null;
   last_error: string | null;
   recording_id: string | null;
   saving_armed: boolean;
@@ -118,7 +119,10 @@ export function reconstructHistory(
     };
   });
 }
-export function useDiagnosticVehicle(enabled: boolean) {
+export function useDiagnosticVehicle(
+  enabled: boolean,
+  vehicleProfileId: string | null,
+) {
   const [status, setStatus] = useState<DIDState | null>(null);
   const [error, setError] = useState("");
   const [history, setHistory] = useState<VehicleSample[]>([]);
@@ -131,13 +135,18 @@ export function useDiagnosticVehicle(enabled: boolean) {
       setStatus(next);
       setError("");
       setClock(Date.now());
-      if (!pausedRef.current)
-        setHistory(reconstructHistory(next.history, next.source));
+      if (!pausedRef.current) {
+        setHistory(
+          vehicleProfileId && next.vehicle_profile_id === vehicleProfileId
+            ? reconstructHistory(next.history, next.source)
+            : [],
+        );
+      }
     } catch (e) {
       setError((e as Error).message);
       setClock(Date.now());
     }
-  }, []);
+  }, [vehicleProfileId]);
   useEffect(() => {
     if (!enabled) return;
     let mounted = true,
@@ -153,10 +162,13 @@ export function useDiagnosticVehicle(enabled: boolean) {
       clearTimeout(timer);
     };
   }, [enabled, refresh]);
-  const latest: VehicleSample = history.length
+  const matchingProfile =
+    !!vehicleProfileId && status?.vehicle_profile_id === vehicleProfileId;
+  const displayedHistory = matchingProfile ? history : [];
+  const latest: VehicleSample = displayedHistory.length
     ? {
-        ...history[history.length - 1],
-        values: { ...history[history.length - 1].values },
+        ...displayedHistory[displayedHistory.length - 1],
+        values: { ...displayedHistory[displayedHistory.length - 1].values },
       }
     : {
         timestamp: clock,
@@ -164,7 +176,7 @@ export function useDiagnosticVehicle(enabled: boolean) {
         values: emptyValues(),
         modules: [],
       };
-  if (!paused && status?.source !== "replay") {
+  if (matchingProfile && !paused && status?.source !== "replay") {
     latest.modules = moduleReadings(status?.latest ?? [], clock);
     for (const key of ["soc", "voltage", "current", "temperature"] as const) {
       const reading = status?.latest.find((r) => r.signal_id === key);
@@ -177,8 +189,16 @@ export function useDiagnosticVehicle(enabled: boolean) {
   function togglePause() {
     pausedRef.current = !pausedRef.current;
     setPaused(pausedRef.current);
-    if (!pausedRef.current && status)
+    if (!pausedRef.current && matchingProfile && status)
       setHistory(reconstructHistory(status.history, status.source));
   }
-  return { history, latest, paused, togglePause, status, error, refresh };
+  return {
+    history: displayedHistory,
+    latest,
+    paused,
+    togglePause,
+    status,
+    error,
+    refresh,
+  };
 }

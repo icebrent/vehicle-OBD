@@ -2,7 +2,6 @@ import asyncio
 import json
 import time
 
-from conftest import wait_until
 from fastapi.testclient import TestClient
 
 from backend.analysis.aggregate import Aggregator
@@ -12,6 +11,8 @@ from backend.models import CANFrame, RecordingRequest
 from backend.storage.sessions import SessionStore
 from backend.transports.replay import ReplayTransport
 from backend.vehicles.registry import RawDecoder
+from tests.conftest import wait_until
+from tests.mock_app import create_mock_app
 
 
 def test_aggregation_and_bounds(frame):
@@ -107,18 +108,19 @@ def test_replay_invalid_file(tmp_path):
 
 
 def test_full_mock_api_workflow(tmp_path):
-    app = create_app(tmp_path, autostart=True)
+    app = create_mock_app(tmp_path)
     with TestClient(app) as client:
         wait_until(lambda: client.get("/api/status").json()["stats"]["received_frames"] > 5)
-        assert client.post("/api/connect", json={"kind": "mock"}).status_code == 409
+        assert client.post("/api/connect", json={"kind": "obdlink", "port": "COM999"}).status_code == 409
         assert client.post("/api/capture/start", json={}).status_code == 409
         profiles = client.get("/api/profiles").json()
-        assert {p["id"] for p in profiles} == {"generic", "byd-dolphin-jp"}
+        assert {p["id"] for p in profiles} == {"generic"}
         original_config = client.get("/api/status").json()["config"]
-        assert client.post("/api/profiles/select", json={"profile_id": "byd-dolphin-jp"}).status_code == 200
+        assert client.post("/api/profiles/select", json={"profile_id": "byd-dolphin-jp"}).status_code == 404
+        assert client.get("/api/status").json()["profile_id"] == "generic"
         assert client.get("/api/status").json()["config"] == original_config
         assert RawDecoder().decode(None, None) == {}
-        assert client.post("/api/mock/scenario", json={"button": True}).status_code == 200
+        assert client.post("/api/mock/scenario", json={"button": True}).status_code == 404
         with client.websocket_connect("/ws") as ws:
             message = ws.receive_json()
             assert message["type"] == "snapshot"
@@ -151,13 +153,13 @@ def test_full_mock_api_workflow(tmp_path):
         wait_until(lambda: client.get("/api/status").json()["state"] == "connected")
         assert client.get("/api/status").json()["stats"]["received_frames"] == session["frame_count"]
         assert client.post("/api/disconnect", json={}).status_code == 200
-        assert client.post("/api/connect", json={"kind": "mock"}).status_code == 200
+        assert client.post("/api/connect", json={"kind": "obdlink", "port": "COM999"}).status_code == 200
         assert client.post("/api/capture/start", json={}).status_code == 200
 
 
 def test_hardware_guard_and_security(tmp_path, monkeypatch):
     monkeypatch.setenv("CAN_ENABLE_HARDWARE", "0")
-    app = create_app(tmp_path, autostart=False)
+    app = create_app(tmp_path)
     with TestClient(app) as client:
         assert client.post("/api/connect", json={"kind": "obdlink", "port": "COM8"}).status_code == 409
         assert client.post("/api/connect", json={"kind": "mock", "command": "010C"}).status_code == 422
@@ -175,7 +177,7 @@ def test_hardware_guard_and_security(tmp_path, monkeypatch):
 
 
 def test_storage_failure_is_visible_and_stops_recording(tmp_path, monkeypatch):
-    app = create_app(tmp_path, autostart=True)
+    app = create_mock_app(tmp_path)
     with TestClient(app) as client:
         client.post("/api/recording/start", json={"name": "disk full"})
 
@@ -190,7 +192,7 @@ def test_storage_failure_is_visible_and_stops_recording(tmp_path, monkeypatch):
 
 
 def test_mock_repeat_connect_start_stop():
-    from backend.transports.mock import MockTransport
+    from tests.mock_transport import MockTransport
 
     transport = MockTransport("cycles")
     output = []
@@ -222,7 +224,7 @@ def test_websocket_rejects_external_origin(tmp_path):
     import pytest
     from starlette.websockets import WebSocketDisconnect
 
-    with TestClient(create_app(tmp_path, autostart=False)) as client:
+    with TestClient(create_app(tmp_path)) as client:
         with pytest.raises(WebSocketDisconnect):
             with client.websocket_connect("/ws", headers={"Origin": "https://evil.example"}):
                 pass
@@ -239,3 +241,18 @@ def test_hardware_launcher_defaults_to_idle_without_mock_or_recording(tmp_path, 
         assert state["recording_id"] is None
         assert state["stats"]["received_frames"] == 0
         assert client.get("/api/sessions").json() == []
+
+
+def test_production_rejects_mock_even_with_legacy_autostart_setting(tmp_path, monkeypatch):
+    monkeypatch.setenv("CAN_AUTOSTART_MOCK", "1")
+    with TestClient(create_app(tmp_path)) as client:
+        state = client.get("/api/status").json()
+        assert state["state"] == "disconnected"
+        assert state["stats"]["received_frames"] == 0
+        assert client.post("/api/connect", json={"kind": "mock"}).status_code == 422
+        assert client.post("/api/mock/scenario", json={"button": True}).status_code == 404
+        schema = client.get("/openapi.json").json()
+        assert schema["components"]["schemas"]["ConnectionConfig"]["properties"]["kind"]["enum"] == [
+            "obdlink",
+            "replay",
+        ]

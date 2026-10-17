@@ -2,17 +2,17 @@
 
 ## 诊断物理量回放
 
-1. 从项目根目录在一个 PowerShell 7 终端设置 `$env:CAN_ENABLE_HARDWARE='0'`、`$env:CAN_AUTOSTART_MOCK='0'`，运行 `pwsh -NoLogo -NoProfile -File .\scripts\start-backend.ps1`。
+1. 从项目根目录在一个 PowerShell 7 终端设置 `$env:CAN_ENABLE_HARDWARE='0'`，运行 `pwsh -NoLogo -NoProfile -File .\scripts\start-backend.ps1`。
 2. 第二个终端运行 `pwsh -NoLogo -NoProfile -File .\scripts\start-frontend.ps1`。
-3. 打开 http://127.0.0.1:5173/?view=vehicle&source=live 。展开 `Diagnostic recordings / replay`。
-4. 点击某条已完成记录的 `Replay`；无需选择 COM 或连接车辆。可用 `Stop reads / replay` 中断回放，Pause 仅暂停展示。
+3. 打开 http://127.0.0.1:5173/?view=vehicle&source=live 。先在 `Vehicle model` 选择对应车型，再在 `Data source` 下拉菜单选择 `Replay`。
+4. 从 `Diagnostic recording` 下拉菜单直接选择记录，再点击 `Start`；无需选择 COM 或连接车辆。可用 `Stop` 中断回放，Pause display 仅暂停展示。
 5. 浏览器使用原始记录时间重建曲线，早期四项记录不会出现没有采集过的分组。分组不完整或过期时显示缺失。
 
-API：`POST /api/vehicle/replay`，正文 `{"recording_id":"记录 UUID","speed":1}`。速度支持 0.5 / 1 / 2 / 5；当前 UI 使用 1 倍。活动记录需先 Stop saving 或 Stop reads 才能导出/回放；对真实连接执行停止前先取得操作者同意。
+API：`POST /api/vehicle/replay`，正文 `{"vehicle_profile_id":"byd-dolphin-jp","recording_id":"记录 UUID","speed":1}`。未选车型时 Start 弹出提示，不发送回放请求；记录 definition_version 必须与所选车型匹配。速度支持 0.5 / 1 / 2 / 5；当前 UI 使用 1 倍。活动记录需先 Stop saving 或 Stop 才能导出/回放；对真实连接执行停止前先取得操作者同意。
 
 ## 原始 CAN 回放
 
-在原始工作台的历史会话中选择原始 CAN 记录并 Replay。它与诊断 DID 格式不同，不能将诊断响应文件作为原始 CAN 导入。原始回放使用 Replay Transport，保留原始 payload 和来源信息。
+在原始工作台将 `Data source` 切到 `Replay`，从 `Raw CAN recording` 下拉菜单选取记录，再点击 `Load replay` 和 `Start`；也可从历史会话直接回放。它与诊断 DID 格式不同，不能将诊断响应文件作为原始 CAN 导入。原始回放使用 Replay Transport，保留原始 payload 和来源信息。
 
 ## 文件与备份
 
@@ -24,7 +24,7 @@ data/
   diagnostics/
     index.sqlite3             DID 记录索引
     <uuid>.ndjson             完整响应、数值、单位、组号、PC 时间与定义版本
-    <uuid>.events.ndjson      可选人工动作备注
+    <uuid>.events.ndjson      历史人工动作备注（不再新增）
   private/                    私有测试清单、报告与旧文档
 ```
 
